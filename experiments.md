@@ -69,3 +69,42 @@ Add new experiment results below as you run more tests!
 | 8     | 0.8394 | 68.57        |
 | 9     | 0.7809 | 70.04        |
 | 10    | 0.7217 | 70.77        |
+
+
+## Run 3: Increase DataLoaders
+- **Hypothesis**: Increasing `num_workers` from 2 to 4 will reduce the data loading bottleneck, allowing the GPU to be fed faster and thus decreasing the total training time. Accuracy should be nearly identical.
+- **Description**: Same as baseline, but with `num_workers=4`.
+- **Total Training Time**: 135.00 seconds
+- **Final Validation Accuracy**: 69.56%
+- **Configuration**: `num_workers=4`, `BATCH_SIZE=512`, `SGD(lr=0.01)`
+- **Result**: Didn't help on Google Colab T4 GPU. Logged warning:
+    ```
+    warnings.warn(
+    /usr/local/lib/python3.11/dist-packages/torch/utils/data/dataloader.py:624: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+    ```
+
+## Run 4: Pre-populate and Normalize the Data before creating DataLoaders
+- **Hypothesis**: The DataLoaders are a bottleneck. Repeatedly loading and normalizing the data.
+- **Description**: Pre-populate the dataset and normalize it in tensor form before creating DataLoaders. 
+  However, we're still loading each batch onto the device during training.
+- **Hardware:** Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**: `num_workers=2`, `BATCH_SIZE=512`, `SGD(lr=0.01)`
+- **Result**: Huge speedup! The repeated loading and normalizing of the data into tensor form was a huge bottleneck!
+- **Total Training Loop Time**: 23.31 seconds (!!!)
+- **Final Validation Accuracy**: 69.64%
+
+## Run 5: Pre-load and Normalize the Data and Move it all to the Device
+- **Hypothesis**: Repatedly sending the batches to the device is a bottleneck.
+- **Description**: Crate the DataLoaders in one huge batch and load it onto the device before training.
+- **Hardware:** Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**: `num_workers=2`, `BATCH_SIZE=512`, `SGD(lr=0.01)`
+- **Result**: Further speedup! The repeated sending of the batches to the device was a bottleneck!
+- **Data Pre-Load Before Training**: 15.24 seconds
+- **Total Training Loop Time**: 13.73 seconds (!!!)
+- **Final Validation Accuracy**: 69.81%
+
+Same code run locally on desktop (CPU):
+- **Hardware:** AMD Ryzen 7 5700U with Radeon Graphics, WSL environment.
+- **Data Pre-Load Before Training**: 12.87 seconds
+- **Total Training Loop Time**: 195.08 seconds
+- **Final Validation Accuracy**: 70.61%

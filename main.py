@@ -26,12 +26,27 @@ def main():
         # Mean and std for CIFAR-10 RGB channels: (R, G, B)
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
     ])
+    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 
-    dataset_train = torchvision.datasets.CIFAR10(root='./data', train=True,  download=True, transform=transform)
-    dataset_test  = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    # Use a DataLoader for the initial one-time load
+    # Note: num_workers=0 can sometimes be fastest for a single pass
+    initial_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=0)
+    initial_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=len(test_dataset), shuffle=False, num_workers=0)
 
-    loader_train = torch.utils.data.DataLoader(dataset_train, batch_size=BATCH_SIZE, shuffle=True,  num_workers=2)
-    loader_test  = torch.utils.data.DataLoader(dataset_test,  batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
+    # --- NEW: Pre-load all data to the GPU ---
+    print("Pre-loading data to GPU...")
+    start_load_time = time.time()
+
+    # Load all training data
+    train_images, train_labels = next(iter(initial_train_loader))
+    train_images, train_labels = train_images.to(device), train_labels.to(device)
+
+    # Load all test data
+    test_images, test_labels = next(iter(initial_test_loader))
+    test_images, test_labels = test_images.to(device), test_labels.to(device)
+
+    print(f"Data pre-loaded in {time.time() - start_load_time:.2f} seconds.")
     
     # --- 4. Model Definition ---
     # A very simple Convolutional Neural Network
@@ -69,35 +84,41 @@ def main():
     for epoch in range(EPOCHS):
         # --- Training ---
         model.train() # Set the model to training mode
-        running_loss = 0.0
-        for i, (inputs, labels) in enumerate(loader_train):
-            inputs, labels = inputs.to(device), labels.to(device)
+        
+        # We shuffle the data manually each epoch
+        permutation = torch.randperm(train_images.size(0))
+        epoch_loss = 0.0
+        num_batches = 0
+        for i in range(0, train_images.size(0), BATCH_SIZE):
+            indices = permutation[i:i+BATCH_SIZE]
+            batch_images, batch_labels = train_images[indices], train_labels[indices]
 
             optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
+            outputs = model(batch_images)
+            loss = criterion(outputs, batch_labels)
             loss.backward()
             optimizer.step()
-            running_loss += loss.item()
 
-        # --- Validation ---
-        model.eval() # Set the model to evaluation mode
+            epoch_loss += loss.item()
+            num_batches += 1
+
+        avg_loss = epoch_loss / num_batches if num_batches > 0 else 0.0
+
+        # --- Validation (now much simpler) ---
+        model.eval()
         correct = 0
-        total = 0
-        with torch.no_grad(): # We don't need to calculate gradients during validation
-            for inputs, labels in loader_test:
-                inputs, labels = inputs.to(device), labels.to(device)
-                outputs = model(inputs)
-                _, predicted = torch.max(outputs.data, 1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
+        with torch.no_grad():
+            # We can evaluate the whole test set in one go since it's small
+            outputs = model(test_images)
+            _, predicted = torch.max(outputs.data, 1)
+            correct = (predicted == test_labels).sum().item()
         
-        val_accuracy = 100 * correct / total
-        print(f'Epoch [{epoch+1}/{EPOCHS}], Loss: {running_loss/len(loader_train):.4f}, Val Accuracy: {val_accuracy:.2f}%')
+        val_accuracy = 100 * correct / len(test_dataset)
+        print(f'Epoch [{epoch+1}/{EPOCHS}], Loss: {avg_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%')
 
     end_time = time.time()
     total_time = end_time - start_time
-    print(f'Finished Training. Total time: {total_time:.2f} seconds')
+    print(f'Finished Training. Training loop time: {total_time:.2f} seconds')
     print(f'Final Validation Accuracy: {val_accuracy:.2f}%')
 
 if __name__ == '__main__':
