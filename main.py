@@ -23,16 +23,16 @@ def main():
     transform = transforms.Compose([
         transforms.ToTensor(),
         # These are the standard normalization values for CIFAR-10
-        # Mean and std for CIFAR-10 RGB channels: (R, G, B)
+        # Mean and std for CIFAR-10 training set RGB channels: (R, G, B)
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
     ])
-    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True,  download=True, transform=transform)
+    test_dataset  = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 
     # Use a DataLoader for the initial one-time load
     # Note: num_workers=0 can sometimes be fastest for a single pass
     initial_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=0)
-    initial_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=len(test_dataset), shuffle=False, num_workers=0)
+    initial_test_loader  = torch.utils.data.DataLoader(test_dataset,  batch_size=len(test_dataset),  shuffle=False, num_workers=0)
 
     # --- NEW: Pre-load all data to the GPU ---
     print("Pre-loading data to GPU...")
