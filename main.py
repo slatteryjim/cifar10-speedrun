@@ -82,6 +82,7 @@ def main():
     start_time = time.time()
 
     for epoch in range(EPOCHS):
+        epoch_start_time = time.time()
         # --- Training ---
         model.train() # Set the model to training mode
         
@@ -114,7 +115,8 @@ def main():
             correct = (predicted == test_labels).sum().item()
         
         val_accuracy = 100 * correct / len(test_dataset)
-        print(f'Epoch [{epoch+1}/{EPOCHS}], Loss: {avg_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%')
+        epoch_duration = time.time() - epoch_start_time
+        print(f'Epoch [{epoch+1}/{EPOCHS}], Loss: {avg_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%, Duration: {epoch_duration:.2f}s')
 
     end_time = time.time()
     total_time = end_time - start_time
