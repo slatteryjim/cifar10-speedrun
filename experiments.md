@@ -108,3 +108,30 @@ Same code run locally on desktop (CPU):
 - **Data Pre-Load Before Training**: 12.87 seconds
 - **Total Training Loop Time**: 195.08 seconds
 - **Final Validation Accuracy**: 70.61%
+
+## Run 6: Ablation Study - Remove RGB Normalization
+- **Hypothesis**: The RGB normalization helps improve the accuracy faster.
+- **Description**: Comment out the normalization step in the transforms:
+   ```
+   transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+   ```
+```
+$ python main.py
+Using device: cpu
+Pre-loading data to GPU...
+Data pre-loaded in 7.90 seconds.
+Epoch [1/10], Loss: 2.2267, Val Accuracy: 28.43%
+Epoch [2/10], Loss: 1.9333, Val Accuracy: 35.69%
+Epoch [3/10], Loss: 1.7314, Val Accuracy: 38.89%
+Epoch [4/10], Loss: 1.5625, Val Accuracy: 47.16%
+Epoch [5/10], Loss: 1.4499, Val Accuracy: 48.79%
+Epoch [6/10], Loss: 1.3706, Val Accuracy: 51.85%
+Epoch [7/10], Loss: 1.3073, Val Accuracy: 54.01%
+Epoch [8/10], Loss: 1.2540, Val Accuracy: 55.60%
+Epoch [9/10], Loss: 1.2018, Val Accuracy: 57.66%
+Epoch [10/10], Loss: 1.1577, Val Accuracy: 59.99%
+Finished Training. Training loop time: 189.21 seconds
+Final Validation Accuracy: 59.99%
+```
+- **Result**: The final accuracy is significantly lower without normalization (59.99% vs. 70.61%), 
+  indicating that it plays an important role in training effectiveness.
