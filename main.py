@@ -17,6 +17,9 @@ def main():
     BATCH_SIZE = 512
     EPOCHS = 10
     
+    print("Pre-loading data...")
+    start_load_time = time.time()
+
     # --- 3. Data Loading and Transformation ---
     # For the baseline, we only do the bare minimum: convert images to tensors
     # and normalize them.
@@ -34,19 +37,44 @@ def main():
     initial_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=0)
     initial_test_loader  = torch.utils.data.DataLoader(test_dataset,  batch_size=len(test_dataset),  shuffle=False, num_workers=0)
 
-    # --- NEW: Pre-load all data to the GPU ---
-    print("Pre-loading data to GPU...")
-    start_load_time = time.time()
-
-    # Load all training data
+    # Load all data
     train_images, train_labels = next(iter(initial_train_loader))
+    test_images,  test_labels  = next(iter(initial_test_loader))
+ 
+    # Send to device
     train_images, train_labels = train_images.to(device), train_labels.to(device)
-
-    # Load all test data
-    test_images, test_labels = next(iter(initial_test_loader))
-    test_images, test_labels = test_images.to(device), test_labels.to(device)
+    test_images,   test_labels = test_images.to(device),  test_labels.to(device)
 
     print(f"Data pre-loaded in {time.time() - start_load_time:.2f} seconds.")
+    
+    # This is a real Python/PyTorch mystery, when testing locally in WSL with CPU (no GPU):
+    #  - If we load these 4 variables and use them, the Epoch time is fast (18s).
+    #  - If we load and then save these 4 variables, delete the vars, and reload them from the files, the Epoch time is fast (18s)!
+    #  - But if we skip the loader and instead just load the 4 variables from the files, the epoch time is SLOW (29s, 27s).
+    #  - If we load but skip save, and then reload the 4 variables from older files, epoch time is FAST (19, 23, 23s).
+    # What in the world is going on???? Why is the epoch time slow unless the loader code runs?
+    # It seems unnecessary if the 4 vars are loaded from files.
+    # The good news is: this issue doesn't exist when using a GPU, specifically the T4 in Google Colab.
+    # With the T4, the epoch times were like 1.3 seconds even if I skipped the loader and simply read the 4 variables from files.
+    
+    # # --- NEW: Save the pre-loaded tensors to files ---
+    # print("Saving pre-loaded tensors to disk...")
+    # torch.save(train_images, './data/train_images.pt')
+    # torch.save(train_labels, './data/train_labels.pt')
+    # torch.save(test_images, './data/test_images.pt')
+    # torch.save(test_labels, './data/test_labels.pt')
+    # print("Tensors saved.")
+
+    # --- NEW: Load the tensors back from files ---
+    # To demonstrate, we'll clear the variables and load them from the saved files
+    # del train_images, train_labels, test_images, test_labels
+    # print("Loading tensors from disk...")
+    # start_load_time = time.time()
+    # train_images = torch.load('./data/train_images.pt', map_location=device).float().clone(memory_format=torch.contiguous_format)
+    # train_labels = torch.load('./data/train_labels.pt', map_location=device).clone(memory_format=torch.contiguous_format)
+    # test_images  = torch.load('./data/test_images.pt',  map_location=device).float().clone(memory_format=torch.contiguous_format)
+    # test_labels  = torch.load('./data/test_labels.pt',  map_location=device).clone(memory_format=torch.contiguous_format)
+    # print(f"Tensors loaded from disk in {time.time() - start_load_time:.2f} seconds.")
     
     # --- 4. Model Definition ---
     # A very simple Convolutional Neural Network
@@ -114,7 +142,7 @@ def main():
             _, predicted = torch.max(outputs.data, 1)
             correct = (predicted == test_labels).sum().item()
         
-        val_accuracy = 100 * correct / len(test_dataset)
+        val_accuracy = 100 * correct / test_images.size(0)
         epoch_duration = time.time() - epoch_start_time
         print(f'Epoch [{epoch+1}/{EPOCHS}], Loss: {avg_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%, Duration: {epoch_duration:.2f}s')
 
