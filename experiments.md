@@ -351,3 +351,31 @@ Final Validation Accuracy: 71.87%
 ```
 
 **Analysis**: Increasing LR to 0.02 with momentum=0.9 improves final accuracy to 71.87% while maintaining ~19–20s epochs on CPU. This now matches/exceeds the BN+momentum result but with better training speed locally. This appears to be the best CPU configuration so far for this small CNN without augmentation.
+
+
+## Run 8g: No BN, SGD lr=0.02, momentum=0.9 + Cosine LR (CPU)
+- Hypothesis: Re-enabling cosine with the stronger lr=0.02 + momentum=0.9 baseline may improve generalization over fixed LR within 10 epochs.
+- Description: USE_BN=False, optimizer=SGD(lr=0.02, momentum=0.9), CosineAnnealingLR with T_max=10; BATCH_SIZE=512, EPOCHS=10; no weight decay; same preloading pipeline.
+- Hardware: AMD Ryzen 7 5700U with Radeon Graphics, WSL environment (CPU).
+- Configuration: SimpleCNN (no BN), SGD(lr=0.02, momentum=0.9), cosine schedule (T_max=10), BATCH_SIZE=512, EPOCHS=10.
+
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 14.11 seconds.
+Epoch [1/10], Loss: 1.7572, Val Accuracy: 50.25%, Duration: 19.60s
+Epoch [2/10], Loss: 1.3028, Val Accuracy: 58.27%, Duration: 18.36s
+Epoch [3/10], Loss: 1.1193, Val Accuracy: 63.13%, Duration: 20.31s
+Epoch [4/10], Loss: 0.9797, Val Accuracy: 66.50%, Duration: 20.42s
+Epoch [5/10], Loss: 0.8804, Val Accuracy: 67.77%, Duration: 20.26s
+Epoch [6/10], Loss: 0.7999, Val Accuracy: 69.43%, Duration: 21.53s
+Epoch [7/10], Loss: 0.7356, Val Accuracy: 70.84%, Duration: 18.70s
+Epoch [8/10], Loss: 0.6840, Val Accuracy: 70.95%, Duration: 18.48s
+Epoch [9/10], Loss: 0.6491, Val Accuracy: 71.72%, Duration: 18.62s
+Epoch [10/10], Loss: 0.6273, Val Accuracy: 71.78%, Duration: 18.55s
+Finished Training. Training loop time: 194.84 seconds
+Final Validation Accuracy: 71.78%
+```
+
+- Result: Cosine with lr=0.02, momentum=0.9 essentially matches the best fixed-LR baseline (71.78% vs 71.87%) with similar time (~195–197s total). Over only 10 epochs, cosine does not clearly outperform fixed LR; it may benefit more from longer horizons or a brief warmup. Next: consider EPOCHS=30–50, CosineAnnealingWarmRestarts, or modest LR sweeps.

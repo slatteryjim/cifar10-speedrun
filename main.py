@@ -17,7 +17,7 @@ def main():
     BATCH_SIZE = 512
     EPOCHS = 10
     USE_BN = False  # Toggle BatchNorm on/off to isolate its effect
-    USE_COSINE = False  # Disable cosine for this experiment (fixed LR)
+    USE_COSINE = True  # Enable cosine annealing LR schedule
     
     print("Pre-loading data...")
     start_load_time = time.time()

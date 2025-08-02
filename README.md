@@ -46,7 +46,7 @@ CIFAR-10 is a classic computer vision dataset consisting of 60,000 32x32 color i
   - USE_BN=True, momentum=0.9, lr=0.01 (or retune)
   - On CPU, BN increases epoch time. On GPU, BN is much faster and can help accuracy.
 - Cosine schedule:
-  - USE_COSINE=True with fixed EPOCHS; consider warmup or longer training for benefit
+  - USE_COSINE=True with fixed EPOCHS; consider warmup or longer training for benefit. Recent run with lr=0.02, momentum=0.9, cosine over 10 epochs achieved 71.78% on CPU.
 
 Refer to experiments.md for exact runs:
 - Adam vs SGD (Run 7a/7b): Adam did not beat tuned SGD in final accuracy for this small CNN.
