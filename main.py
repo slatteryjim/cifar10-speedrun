@@ -13,7 +13,7 @@ def main():
 
     # --- 2. Hyperparameters ---
     # These are the settings we will be tweaking in our experiments
-    LEARNING_RATE = 0.01
+    LEARNING_RATE = 0.0004  # Standard Adam learning rate
     BATCH_SIZE = 512
     EPOCHS = 10
     
@@ -103,8 +103,8 @@ def main():
 
     # --- 5. Loss Function and Optimizer ---
     criterion = nn.CrossEntropyLoss()
-    # Baseline optimizer: SGD with momentum
-    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
+    # Experiment 2.1: Adam optimizer instead of SGD
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     # --- 6. Training and Validation Loop ---
     start_time = time.time()

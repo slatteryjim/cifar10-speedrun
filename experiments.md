@@ -135,3 +135,56 @@ Final Validation Accuracy: 59.99%
 ```
 - **Result**: The final accuracy is significantly lower without normalization (59.99% vs. 70.61%), 
   indicating that it plays an important role in training effectiveness.
+
+## Run 7: Experiment 2.1 - Adam Optimizer
+- **Hypothesis**: Adam optimizer will converge faster and potentially achieve better final accuracy than SGD.
+- **Description**: Switch from SGD to Adam optimizer, adjusting learning rate from 0.01 (SGD) to 0.001 (Adam). Also tested lr=0.0004 based on common Adam defaults.
+- **Hardware:** AMD Ryzen 7 5700U with Radeon Graphics, WSL environment.
+
+### Run 7a: Adam, lr=0.001
+- **Configuration**: Adam optimizer, lr=0.001, BATCH_SIZE=512, EPOCHS=10
+- **Final Validation Accuracy**: 70.54%
+
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 14.50 seconds.
+Epoch [1/10], Loss: 1.5726, Val Accuracy: 53.48%, Duration: 20.42s
+Epoch [2/10], Loss: 1.1831, Val Accuracy: 60.54%, Duration: 20.65s
+Epoch [3/10], Loss: 1.0338, Val Accuracy: 63.96%, Duration: 19.86s
+Epoch [4/10], Loss: 0.9314, Val Accuracy: 67.05%, Duration: 19.56s
+Epoch [5/10], Loss: 0.8551, Val Accuracy: 67.92%, Duration: 19.72s
+Epoch [6/10], Loss: 0.7870, Val Accuracy: 69.23%, Duration: 19.96s
+Epoch [7/10], Loss: 0.7355, Val Accuracy: 68.72%, Duration: 19.45s
+Epoch [8/10], Loss: 0.6935, Val Accuracy: 69.86%, Duration: 19.52s
+Epoch [9/10], Loss: 0.6383, Val Accuracy: 71.29%, Duration: 20.05s
+Epoch [10/10], Loss: 0.5956, Val Accuracy: 70.54%, Duration: 19.96s
+Finished Training. Training loop time: 199.15 seconds
+Final Validation Accuracy: 70.54%
+```
+
+### Run 7b: Adam, lr=0.0004
+- **Configuration**: Adam optimizer, lr=0.0004, BATCH_SIZE=512, EPOCHS=10
+- **Final Validation Accuracy**: 66.69%
+- **Training Loop Time**: 198.33 seconds
+- **Data Pre-Load Before Training**: 13.68 seconds
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 13.68 seconds.
+Epoch [1/10], Loss: 1.6765, Val Accuracy: 49.63%, Duration: 19.54s
+Epoch [2/10], Loss: 1.3395, Val Accuracy: 55.69%, Duration: 19.97s
+Epoch [3/10], Loss: 1.2108, Val Accuracy: 58.29%, Duration: 20.65s
+Epoch [4/10], Loss: 1.1236, Val Accuracy: 60.05%, Duration: 19.99s
+Epoch [5/10], Loss: 1.0533, Val Accuracy: 62.89%, Duration: 20.10s
+Epoch [6/10], Loss: 0.9957, Val Accuracy: 64.57%, Duration: 19.90s
+Epoch [7/10], Loss: 0.9511, Val Accuracy: 65.67%, Duration: 20.55s
+Epoch [8/10], Loss: 0.9079, Val Accuracy: 67.06%, Duration: 19.10s
+Epoch [9/10], Loss: 0.8725, Val Accuracy: 65.65%, Duration: 18.63s
+Epoch [10/10], Loss: 0.8468, Val Accuracy: 66.69%, Duration: 19.90s
+Finished Training. Training loop time: 198.33 seconds
+Final Validation Accuracy: 66.69%
+```
+**Analysis**: Adam shows faster initial convergence than SGD, but the final accuracy with lr=0.001 is only comparable to SGD, and lr=0.0004 underperforms. For this simple CNN on CIFAR-10, Adam does not outperform well-tuned SGD in final accuracy; tuning learning rate matters significantly.
