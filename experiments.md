@@ -324,3 +324,30 @@ Final Validation Accuracy: 66.48%
 ```
 
 **Analysis**: Cosine schedule underperformed the fixed-LR momentum baseline on this architecture/dataset split (66.5% vs ~70–71%). Likely the LR decay was too aggressive over only 10 epochs with no warmup. If retrying cosine, consider either a higher initial LR (e.g., 0.02), a warmup epoch, or extending total epochs. For now, fixed LR=0.01 with momentum=0.9 (no BN) remains the best CPU speed/accuracy trade-off observed.
+
+### Run 8f: No BN, SGD lr=0.02, momentum=0.9 (CPU)
+- **Hypothesis**: A slightly higher LR with momentum may improve final accuracy within 10 epochs.
+- **Description**: USE_BN=False, fixed LR=0.02, momentum=0.9, no weight decay, no scheduler; BATCH_SIZE=512, EPOCHS=10.
+- **Hardware:** AMD Ryzen 7 5700U with Radeon Graphics, WSL environment (CPU).
+- **Configuration**: Plain SimpleCNN (no BN), SGD(lr=0.02, momentum=0.9), BATCH_SIZE=512, EPOCHS=10.
+
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 14.00 seconds.
+Epoch [1/10], Loss: 1.7484, Val Accuracy: 49.95%, Duration: 20.78s
+Epoch [2/10], Loss: 1.2820, Val Accuracy: 57.25%, Duration: 19.96s
+Epoch [3/10], Loss: 1.0949, Val Accuracy: 63.43%, Duration: 19.67s
+Epoch [4/10], Loss: 0.9661, Val Accuracy: 66.19%, Duration: 19.12s
+Epoch [5/10], Loss: 0.8593, Val Accuracy: 68.32%, Duration: 19.21s
+Epoch [6/10], Loss: 0.7831, Val Accuracy: 69.16%, Duration: 19.38s
+Epoch [7/10], Loss: 0.7036, Val Accuracy: 70.45%, Duration: 20.24s
+Epoch [8/10], Loss: 0.6326, Val Accuracy: 71.18%, Duration: 20.01s
+Epoch [9/10], Loss: 0.5596, Val Accuracy: 71.32%, Duration: 19.22s
+Epoch [10/10], Loss: 0.4853, Val Accuracy: 71.87%, Duration: 19.72s
+Finished Training. Training loop time: 197.30 seconds
+Final Validation Accuracy: 71.87%
+```
+
+**Analysis**: Increasing LR to 0.02 with momentum=0.9 improves final accuracy to 71.87% while maintaining ~19–20s epochs on CPU. This now matches/exceeds the BN+momentum result but with better training speed locally. This appears to be the best CPU configuration so far for this small CNN without augmentation.

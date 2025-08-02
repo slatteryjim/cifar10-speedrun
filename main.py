@@ -13,11 +13,11 @@ def main():
 
     # --- 2. Hyperparameters ---
     # These are the settings we will be tweaking in our experiments
-    LEARNING_RATE = 0.01  # Baseline SGD learning rate
+    LEARNING_RATE = 0.02  # Higher LR test for SGD momentum baseline
     BATCH_SIZE = 512
     EPOCHS = 10
     USE_BN = False  # Toggle BatchNorm on/off to isolate its effect
-    USE_COSINE = True  # Toggle cosine LR schedule for 10 epochs (no warm restarts)
+    USE_COSINE = False  # Disable cosine for this experiment (fixed LR)
     
     print("Pre-loading data...")
     start_load_time = time.time()
