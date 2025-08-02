@@ -21,24 +21,36 @@ def main():
     start_load_time = time.time()
 
     # --- 3. Data Loading and Transformation ---
-    transform = transforms.Compose([
+    train_transform = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
     ])
-    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True,  download=True, transform=transform)
-    test_dataset  = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    test_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+    ])
+    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True,  download=True, transform=train_transform)
+    test_dataset  = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=test_transform)
 
-    # Pre-load all data
-    initial_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=0)
-    initial_test_loader  = torch.utils.data.DataLoader(test_dataset,  batch_size=len(test_dataset),  shuffle=False, num_workers=0)
+    # Create data loaders for batch training
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset, 
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        num_workers=2,
+        pin_memory=True  # This helps speed up data transfer to GPU
+    )
+    test_loader = torch.utils.data.DataLoader(
+        test_dataset,
+        batch_size=1000,  # Larger batch size for testing since no augmentation
+        shuffle=False,
+        num_workers=2,
+        pin_memory=True
+    )
 
-    train_images, train_labels = next(iter(initial_train_loader))
-    test_images,  test_labels  = next(iter(initial_test_loader))
- 
-    train_images, train_labels = train_images.to(device), train_labels.to(device)
-    test_images,   test_labels = test_images.to(device),  test_labels.to(device)
-
-    print(f"Data pre-loaded in {time.time() - start_load_time:.2f} seconds.")
+    print(f"Data loaders created in {time.time() - start_load_time:.2f} seconds.")
     
     # --- 4. ResNet-9 Model Definition ---
     class BasicBlock(nn.Module):
@@ -148,14 +160,13 @@ def main():
         epoch_start_time = time.time()
         # --- Training ---
         model.train()
-        
-        permutation = torch.randperm(train_images.size(0))
         epoch_loss = 0.0
         num_batches = 0
-        for i in range(0, train_images.size(0), BATCH_SIZE):
-            indices = permutation[i:i+BATCH_SIZE]
-            batch_images, batch_labels = train_images[indices], train_labels[indices]
-
+        
+        for batch_images, batch_labels in train_loader:
+            batch_images = batch_images.to(device)
+            batch_labels = batch_labels.to(device)
+            
             optimizer.zero_grad()
             outputs = model(batch_images)
             loss = criterion(outputs, batch_labels)
@@ -173,12 +184,18 @@ def main():
         # --- Validation ---
         model.eval()
         correct = 0
+        total = 0
         with torch.no_grad():
-            outputs = model(test_images)
-            _, predicted = torch.max(outputs.data, 1)
-            correct = (predicted == test_labels).sum().item()
+            for test_images, test_labels in test_loader:
+                test_images = test_images.to(device)
+                test_labels = test_labels.to(device)
+                
+                outputs = model(test_images)
+                _, predicted = torch.max(outputs.data, 1)
+                total += test_labels.size(0)
+                correct += (predicted == test_labels).sum().item()
         
-        val_accuracy = 100 * correct / test_images.size(0)
+        val_accuracy = 100 * correct / total
         epoch_duration = time.time() - epoch_start_time
         print(f'Epoch [{epoch+1}/{EPOCHS}], Loss: {avg_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%, Duration: {epoch_duration:.2f}s')
 
