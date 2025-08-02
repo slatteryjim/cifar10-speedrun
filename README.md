@@ -61,6 +61,12 @@ Refer to experiments.md for exact runs:
 - LR/momentum small sweep around the current best: lr ∈ {0.015, 0.02, 0.025}, momentum ∈ {0.8, 0.9, 0.95}.
 - Optional optimizer baseline: AdamW(lr=1e-3, wd=5e-4) for completeness.
 
+### Pushing the Limits
+Once you are comfortable with the above, try more advanced experiments:
+- Architectural Changes: Add dropout, increase the model depth or width, or try a simple ResNet block.
+- Advanced Optimizers: Try newer optimizers like LAdam or RAdam.
+- CutMix / MixUp: Implement more advanced data augmentation strategies.
+
 ## Environment setup
 - Python 3.10+
 - pip install torch torchvision (or use Conda)
