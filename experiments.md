@@ -297,3 +297,30 @@ Final Validation Accuracy: 69.29%
 ```
 
 **Analysis**: With weight decay, final accuracy here slightly underperformed momentum-only (~69.3% vs ~70.6%) on this run, though differences can be within run-to-run variance. Time remained in the faster ~19–20s/epoch band without BN. Next, consider trying cosine LR scheduling or tuning weight_decay (e.g., 1e-4 to 5e-4) to see if accuracy improves, or run multiple seeds to reduce variance effects.
+
+### Run 8e: No BN, SGD momentum=0.9 + Cosine LR Schedule (CPU)
+- **Hypothesis**: Cosine annealing can improve generalization and final accuracy over a fixed LR.
+- **Description**: USE_BN=False, optimizer=SGD(lr=0.01, momentum=0.9), CosineAnnealingLR over 10 epochs, no weight decay; BATCH_SIZE=512, EPOCHS=10.
+- **Hardware:** AMD Ryzen 7 5700U with Radeon Graphics, WSL environment (CPU).
+- **Configuration**: Plain SimpleCNN (no BN), SGD(lr=0.01, momentum=0.9), cosine schedule (T_max=10), BATCH_SIZE=512, EPOCHS=10.
+
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 12.73 seconds.
+Epoch [1/10], Loss: 1.8896, Val Accuracy: 45.53%, Duration: 17.93s
+Epoch [2/10], Loss: 1.4258, Val Accuracy: 52.42%, Duration: 19.47s
+Epoch [3/10], Loss: 1.2589, Val Accuracy: 56.44%, Duration: 19.08s
+Epoch [4/10], Loss: 1.1413, Val Accuracy: 59.26%, Duration: 19.20s
+Epoch [5/10], Loss: 1.0700, Val Accuracy: 62.27%, Duration: 19.67s
+Epoch [6/10], Loss: 0.9929, Val Accuracy: 64.11%, Duration: 20.19s
+Epoch [7/10], Loss: 0.9372, Val Accuracy: 65.37%, Duration: 18.95s
+Epoch [8/10], Loss: 0.9026, Val Accuracy: 65.57%, Duration: 19.87s
+Epoch [9/10], Loss: 0.8781, Val Accuracy: 65.94%, Duration: 20.12s
+Epoch [10/10], Loss: 0.8637, Val Accuracy: 66.48%, Duration: 19.34s
+Finished Training. Training loop time: 193.83 seconds
+Final Validation Accuracy: 66.48%
+```
+
+**Analysis**: Cosine schedule underperformed the fixed-LR momentum baseline on this architecture/dataset split (66.5% vs ~70–71%). Likely the LR decay was too aggressive over only 10 epochs with no warmup. If retrying cosine, consider either a higher initial LR (e.g., 0.02), a warmup epoch, or extending total epochs. For now, fixed LR=0.01 with momentum=0.9 (no BN) remains the best CPU speed/accuracy trade-off observed.

@@ -17,6 +17,7 @@ def main():
     BATCH_SIZE = 512
     EPOCHS = 10
     USE_BN = False  # Toggle BatchNorm on/off to isolate its effect
+    USE_COSINE = True  # Toggle cosine LR schedule for 10 epochs (no warm restarts)
     
     print("Pre-loading data...")
     start_load_time = time.time()
@@ -119,8 +120,10 @@ def main():
 
     # --- 5. Loss Function and Optimizer ---
     criterion = nn.CrossEntropyLoss()
-    # Plain SGD with momentum=0.9 and weight decay for regularization (BN toggled by USE_BN)
-    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9, weight_decay=5e-4)
+    # Plain SGD with momentum=0.9 (no weight decay) for isolation (BN toggled by USE_BN)
+    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
+    # Optional cosine LR schedule across total epochs
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS) if USE_COSINE else None
 
     # --- 6. Training and Validation Loop ---
     start_time = time.time()
@@ -148,6 +151,10 @@ def main():
             num_batches += 1
 
         avg_loss = epoch_loss / num_batches if num_batches > 0 else 0.0
+
+        # Step LR scheduler once per epoch (after training)
+        if scheduler is not None:
+            scheduler.step()
 
         # --- Validation (now much simpler) ---
         model.eval()
