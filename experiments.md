@@ -243,3 +243,30 @@ Final Validation Accuracy: 71.83%
 ```
 
 **Analysis**: Momentum with BN restores and surpasses the earlier CPU baseline, reaching 71.83% final accuracy. However, CPU epoch times remain higher with BN (~29–31s vs ~20s without BN). Next isolation: test plain SGD + momentum=0.9 without BN to quantify momentum’s standalone contribution.
+
+### Run 8c: Remove BatchNorm, keep SGD Momentum=0.9 (CPU)
+- **Hypothesis**: Isolate the benefit of momentum alone without BN overhead.
+- **Description**: USE_BN=False (no BatchNorm), optimizer=SGD(lr=0.01, momentum=0.9), BATCH_SIZE=512, EPOCHS=10.
+- **Hardware:** AMD Ryzen 7 5700U with Radeon Graphics, WSL environment (CPU).
+- **Configuration**: Plain SimpleCNN (no BN), SGD(lr=0.01, momentum=0.9), BATCH_SIZE=512, EPOCHS=10.
+
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 13.37 seconds.
+Epoch [1/10], Loss: 1.8987, Val Accuracy: 45.17%, Duration: 18.02s
+Epoch [2/10], Loss: 1.4286, Val Accuracy: 52.15%, Duration: 19.91s
+Epoch [3/10], Loss: 1.2547, Val Accuracy: 57.24%, Duration: 21.74s
+Epoch [4/10], Loss: 1.1336, Val Accuracy: 60.48%, Duration: 20.84s
+Epoch [5/10], Loss: 1.0397, Val Accuracy: 62.27%, Duration: 22.01s
+Epoch [6/10], Loss: 0.9639, Val Accuracy: 64.78%, Duration: 22.32s
+Epoch [7/10], Loss: 0.8949, Val Accuracy: 66.52%, Duration: 21.32s
+Epoch [8/10], Loss: 0.8293, Val Accuracy: 68.32%, Duration: 21.58s
+Epoch [9/10], Loss: 0.7829, Val Accuracy: 68.86%, Duration: 21.59s
+Epoch [10/10], Loss: 0.7235, Val Accuracy: 70.57%, Duration: 20.55s
+Finished Training. Training loop time: 209.88 seconds
+Final Validation Accuracy: 70.57%
+```
+
+**Analysis**: Momentum alone (no BN) restores accuracy to ~70.6% and keeps epoch time close to the faster, pre-BN runs (~20–22s). Conclusion: on CPU, BN adds notable overhead and didn’t help accuracy in this small CNN, while momentum=0.9 provides a clear benefit with minimal time cost. On GPU, BN would likely be faster and may still help; locally on CPU, prefer plain CNN + momentum for speed/accuracy trade-off.

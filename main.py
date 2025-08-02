@@ -16,6 +16,7 @@ def main():
     LEARNING_RATE = 0.01  # Baseline SGD learning rate
     BATCH_SIZE = 512
     EPOCHS = 10
+    USE_BN = False  # Toggle BatchNorm on/off to isolate its effect
     
     print("Pre-loading data...")
     start_load_time = time.time()
@@ -79,14 +80,17 @@ def main():
     # --- 4. Model Definition ---
     # A very simple Convolutional Neural Network
     class SimpleCNN(nn.Module):
-        def __init__(self):
+        def __init__(self, use_bn: bool = True):
             super(SimpleCNN, self).__init__()
+            self.use_bn = use_bn
             # Input: 3x32x32
             self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, padding=1)
-            self.bn1 = nn.BatchNorm2d(32)
+            if self.use_bn:
+                self.bn1 = nn.BatchNorm2d(32)
             self.pool = nn.MaxPool2d(kernel_size=2, stride=2) # Reduces size from 32x32 to 16x16
             self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
-            self.bn2 = nn.BatchNorm2d(64)
+            if self.use_bn:
+                self.bn2 = nn.BatchNorm2d(64)
             # Pool again, from 16x16 to 8x8
             
             # The flattened size will be 64 (channels) * 8 * 8 (image dimension)
@@ -94,18 +98,28 @@ def main():
             self.fc2 = nn.Linear(128, 10) # 10 output classes
 
         def forward(self, x):
-            x = self.pool(torch.relu(self.bn1(self.conv1(x))))
-            x = self.pool(torch.relu(self.bn2(self.conv2(x))))
+            x = self.conv1(x)
+            if self.use_bn:
+                x = self.bn1(x)
+            x = torch.relu(x)
+            x = self.pool(x)
+
+            x = self.conv2(x)
+            if self.use_bn:
+                x = self.bn2(x)
+            x = torch.relu(x)
+            x = self.pool(x)
+
             x = x.view(-1, 64 * 8 * 8) # Flatten the tensor
             x = torch.relu(self.fc1(x))
             x = self.fc2(x)
             return x
 
-    model = SimpleCNN().to(device)
+    model = SimpleCNN(use_bn=USE_BN).to(device)
 
     # --- 5. Loss Function and Optimizer ---
     criterion = nn.CrossEntropyLoss()
-    # BN + SGD with momentum=0.9 (Run 8b)
+    # Plain SGD with momentum=0.9 for isolation (BN toggled by USE_BN)
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 
     # --- 6. Training and Validation Loop ---
