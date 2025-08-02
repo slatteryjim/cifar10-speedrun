@@ -428,3 +428,16 @@ Final Validation Accuracy: 75.54%
   1. Add data augmentation to combat overfitting
   2. Consider adding dropout
   3. Try lower learning rate (e.g., 0.01) to stabilize training
+
+For reference, here was the progress on a CPU-only run, taking much longer per epoch:
+```
+python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 13.51 seconds.
+Model parameters: 11,173,962
+Epoch [1/10], Loss: 1.6297, Val Accuracy: 50.78%, Duration: 937.97s
+Epoch [2/10], Loss: 1.1253, Val Accuracy: 60.99%, Duration: 929.16s
+Epoch [3/10], Loss: 0.8609, Val Accuracy: 64.91%, Duration: 953.06s
+Epoch [4/10], Loss: 0.6332, Val Accuracy: 64.90%, Duration: 1012.34s
+```
