@@ -379,3 +379,52 @@ Final Validation Accuracy: 71.78%
 ```
 
 - Result: Cosine with lr=0.02, momentum=0.9 essentially matches the best fixed-LR baseline (71.78% vs 71.87%) with similar time (~195–197s total). Over only 10 epochs, cosine does not clearly outperform fixed LR; it may benefit more from longer horizons or a brief warmup. Next: consider EPOCHS=30–50, CosineAnnealingWarmRestarts, or modest LR sweeps.
+
+## Run 9: ResNet-9 Model (Google Colab, T4 GPU)
+- **Hypothesis**: A deeper model with residual connections and BatchNorm should improve accuracy significantly.
+- **Description**: Switched to ResNet-9 architecture with residual blocks, BatchNorm throughout.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**:
+  - Model: ResNet-9 (11,173,962 parameters)
+  - BatchNorm: True
+  - Optimizer: SGD(lr=0.02, momentum=0.9)
+  - BATCH_SIZE=512
+  - EPOCHS=10
+  - Augmentation: None
+
+```
+$ python main.py
+Using device: cuda
+Pre-loading data...
+Data pre-loaded in 23.35 seconds.
+Model parameters: 11,173,962
+Epoch [1/10], Loss: 1.6490, Val Accuracy: 48.67%, Duration: 42.16s
+Epoch [2/10], Loss: 1.1225, Val Accuracy: 62.54%, Duration: 45.51s
+Epoch [3/10], Loss: 0.8396, Val Accuracy: 61.99%, Duration: 43.81s
+Epoch [4/10], Loss: 0.6367, Val Accuracy: 70.06%, Duration: 44.52s
+Epoch [5/10], Loss: 0.4337, Val Accuracy: 69.45%, Duration: 44.36s
+Epoch [6/10], Loss: 0.2585, Val Accuracy: 67.86%, Duration: 44.26s
+Epoch [7/10], Loss: 0.1361, Val Accuracy: 70.97%, Duration: 44.31s
+Epoch [8/10], Loss: 0.0747, Val Accuracy: 71.22%, Duration: 44.35s
+Epoch [9/10], Loss: 0.0285, Val Accuracy: 72.28%, Duration: 44.55s
+Epoch [10/10], Loss: 0.0084, Val Accuracy: 75.54%, Duration: 44.63s
+Finished Training. Training loop time: 442.45 seconds
+Final Validation Accuracy: 75.54%
+```
+
+**Analysis**: 
+- Significant accuracy improvement: 75.54% vs previous best of 71.87% (Run 8f)
+- Training dynamics show strong learning but potential overfitting:
+  - Loss decreases rapidly to near-zero (0.0084)
+  - Validation accuracy continues improving despite very low loss
+  - Some fluctuation in middle epochs (67-70%)
+- Slower training due to:
+  - Larger model (11.2M parameters)
+  - BatchNorm operations
+  - Residual connections
+  - ~44s/epoch (GPU) vs ~20s/epoch for SimpleCNN (CPU)
+- The accuracy gain justifies the increased training time
+- Next steps:
+  1. Add data augmentation to combat overfitting
+  2. Consider adding dropout
+  3. Try lower learning rate (e.g., 0.01) to stabilize training
