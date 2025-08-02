@@ -270,3 +270,30 @@ Final Validation Accuracy: 70.57%
 ```
 
 **Analysis**: Momentum alone (no BN) restores accuracy to ~70.6% and keeps epoch time close to the faster, pre-BN runs (~20–22s). Conclusion: on CPU, BN adds notable overhead and didn’t help accuracy in this small CNN, while momentum=0.9 provides a clear benefit with minimal time cost. On GPU, BN would likely be faster and may still help; locally on CPU, prefer plain CNN + momentum for speed/accuracy trade-off.
+
+### Run 8d: No BN, SGD momentum=0.9, weight_decay=5e-4 (CPU)
+- **Hypothesis**: Adding standard weight decay should improve generalization slightly over momentum-only.
+- **Description**: USE_BN=False, optimizer=SGD(lr=0.01, momentum=0.9, weight_decay=5e-4), BATCH_SIZE=512, EPOCHS=10.
+- **Hardware:** AMD Ryzen 7 5700U with Radeon Graphics, WSL environment (CPU).
+- **Configuration**: Plain SimpleCNN (no BN), SGD(lr=0.01, momentum=0.9, wd=5e-4), BATCH_SIZE=512, EPOCHS=10.
+
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 14.55 seconds.
+Epoch [1/10], Loss: 1.8833, Val Accuracy: 43.24%, Duration: 18.46s
+Epoch [2/10], Loss: 1.4400, Val Accuracy: 51.42%, Duration: 19.06s
+Epoch [3/10], Loss: 1.2625, Val Accuracy: 56.84%, Duration: 19.33s
+Epoch [4/10], Loss: 1.1499, Val Accuracy: 59.50%, Duration: 19.92s
+Epoch [5/10], Loss: 1.0612, Val Accuracy: 63.00%, Duration: 19.03s
+Epoch [6/10], Loss: 0.9716, Val Accuracy: 65.18%, Duration: 19.60s
+Epoch [7/10], Loss: 0.9192, Val Accuracy: 65.83%, Duration: 19.68s
+Epoch [8/10], Loss: 0.8637, Val Accuracy: 67.28%, Duration: 19.61s
+Epoch [9/10], Loss: 0.8058, Val Accuracy: 67.04%, Duration: 19.71s
+Epoch [10/10], Loss: 0.7546, Val Accuracy: 69.29%, Duration: 18.89s
+Finished Training. Training loop time: 193.29 seconds
+Final Validation Accuracy: 69.29%
+```
+
+**Analysis**: With weight decay, final accuracy here slightly underperformed momentum-only (~69.3% vs ~70.6%) on this run, though differences can be within run-to-run variance. Time remained in the faster ~19–20s/epoch band without BN. Next, consider trying cosine LR scheduling or tuning weight_decay (e.g., 1e-4 to 5e-4) to see if accuracy improves, or run multiple seeds to reduce variance effects.

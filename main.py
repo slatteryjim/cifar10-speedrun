@@ -119,8 +119,8 @@ def main():
 
     # --- 5. Loss Function and Optimizer ---
     criterion = nn.CrossEntropyLoss()
-    # Plain SGD with momentum=0.9 for isolation (BN toggled by USE_BN)
-    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
+    # Plain SGD with momentum=0.9 and weight decay for regularization (BN toggled by USE_BN)
+    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9, weight_decay=5e-4)
 
     # --- 6. Training and Validation Loop ---
     start_time = time.time()
