@@ -105,8 +105,8 @@ def main():
 
     # --- 5. Loss Function and Optimizer ---
     criterion = nn.CrossEntropyLoss()
-    # Rollback to baseline optimizer
-    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
+    # BN + SGD with momentum=0.9 (Run 8b)
+    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 
     # --- 6. Training and Validation Loop ---
     start_time = time.time()

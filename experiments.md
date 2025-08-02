@@ -216,3 +216,30 @@ Final Validation Accuracy: 63.36%
 ```
 
 **Analysis**: On CPU, adding BatchNorm2d increased per-epoch time substantially and reduced final accuracy relative to the previous CPU baseline (~70%). Likely causes: BN kernels are slower on CPU; momentum was not used (BN often pairs well with SGD+momentum); hyperparameters not re-tuned for BN. Next steps: test SGD+momentum=0.9 with BN, and/or run on GPU where BN is much faster.
+
+### Run 8b: BatchNorm2d + SGD Momentum=0.9 (CPU)
+- **Hypothesis**: Adding momentum with BN should improve convergence and recover/beat baseline accuracy.
+- **Description**: Same as Run 8 (BN after conv1/conv2), but use SGD with momentum=0.9; lr=0.01; BATCH_SIZE=512; EPOCHS=10.
+- **Hardware:** AMD Ryzen 7 5700U with Radeon Graphics, WSL environment (CPU).
+- **Configuration**: SGD(lr=0.01, momentum=0.9), BATCH_SIZE=512, EPOCHS=10, BatchNorm2d after conv1/conv2.
+
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 13.54 seconds.
+Epoch [1/10], Loss: 1.5025, Val Accuracy: 57.68%, Duration: 25.75s
+Epoch [2/10], Loss: 1.0837, Val Accuracy: 61.30%, Duration: 30.47s
+Epoch [3/10], Loss: 0.9392, Val Accuracy: 66.26%, Duration: 31.51s
+Epoch [4/10], Loss: 0.8598, Val Accuracy: 67.09%, Duration: 29.90s
+Epoch [5/10], Loss: 0.7828, Val Accuracy: 68.90%, Duration: 29.20s
+Epoch [6/10], Loss: 0.7239, Val Accuracy: 67.94%, Duration: 29.94s
+Epoch [7/10], Loss: 0.6749, Val Accuracy: 70.57%, Duration: 29.54s
+Epoch [8/10], Loss: 0.6353, Val Accuracy: 69.78%, Duration: 30.72s
+Epoch [9/10], Loss: 0.5773, Val Accuracy: 69.93%, Duration: 29.87s
+Epoch [10/10], Loss: 0.5345, Val Accuracy: 71.83%, Duration: 31.22s
+Finished Training. Training loop time: 298.13 seconds
+Final Validation Accuracy: 71.83%
+```
+
+**Analysis**: Momentum with BN restores and surpasses the earlier CPU baseline, reaching 71.83% final accuracy. However, CPU epoch times remain higher with BN (~29–31s vs ~20s without BN). Next isolation: test plain SGD + momentum=0.9 without BN to quantify momentum’s standalone contribution.
