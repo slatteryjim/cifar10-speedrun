@@ -188,3 +188,31 @@ Finished Training. Training loop time: 198.33 seconds
 Final Validation Accuracy: 66.69%
 ```
 **Analysis**: Adam shows faster initial convergence than SGD, but the final accuracy with lr=0.001 is only comparable to SGD, and lr=0.0004 underperforms. For this simple CNN on CIFAR-10, Adam does not outperform well-tuned SGD in final accuracy; tuning learning rate matters significantly.
+
+## Run 8: Add BatchNorm2d (CPU)
+- **Hypothesis**: BatchNorm should stabilize training and improve final accuracy.
+- **Description**: Insert BatchNorm2d after each conv layer: Conv -> BN -> ReLU -> Pool. Keep optimizer as plain SGD (no momentum), lr=0.01; BATCH_SIZE=512; EPOCHS=10. Same preloading and normalization as prior runs.
+- **Hardware:** AMD Ryzen 7 5700U with Radeon Graphics, WSL environment (CPU).
+- **Configuration**: SGD(lr=0.01, momentum=0.0), BATCH_SIZE=512, EPOCHS=10, BatchNorm2d after conv1/conv2.
+- **Observation**: Per-epoch time on CPU increased substantially with BN compared to prior CPU runs.
+
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data pre-loaded in 15.01 seconds.
+Epoch [1/10], Loss: 1.8820, Val Accuracy: 44.49%, Duration: 29.67s
+Epoch [2/10], Loss: 1.5277, Val Accuracy: 49.90%, Duration: 31.31s
+Epoch [3/10], Loss: 1.3751, Val Accuracy: 53.62%, Duration: 31.14s
+Epoch [4/10], Loss: 1.2801, Val Accuracy: 54.82%, Duration: 33.10s
+Epoch [5/10], Loss: 1.2092, Val Accuracy: 56.85%, Duration: 31.33s
+Epoch [6/10], Loss: 1.1537, Val Accuracy: 59.29%, Duration: 30.15s
+Epoch [7/10], Loss: 1.1083, Val Accuracy: 60.32%, Duration: 32.39s
+Epoch [8/10], Loss: 1.0662, Val Accuracy: 61.13%, Duration: 31.49s
+Epoch [9/10], Loss: 1.0322, Val Accuracy: 60.05%, Duration: 31.42s
+Epoch [10/10], Loss: 1.0021, Val Accuracy: 63.36%, Duration: 32.57s
+Finished Training. Training loop time: 314.56 seconds
+Final Validation Accuracy: 63.36%
+```
+
+**Analysis**: On CPU, adding BatchNorm2d increased per-epoch time substantially and reduced final accuracy relative to the previous CPU baseline (~70%). Likely causes: BN kernels are slower on CPU; momentum was not used (BN often pairs well with SGD+momentum); hyperparameters not re-tuned for BN. Next steps: test SGD+momentum=0.9 with BN, and/or run on GPU where BN is much faster.
