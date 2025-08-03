@@ -1047,3 +1047,50 @@ Final Validation Accuracy: 84.08%
 - **Baseline established**: 84.08% CPU accuracy provides hardware-independent reference
 
 **Recommendation**: Use GPU for all speedrunning experiments; CPU acceptable for overnight accuracy runs.
+
+---
+
+## Run 20: Higher Learning Rate with Optimal Batch Size (Google Colab, T4 GPU)
+- **Hypothesis**: A higher learning rate of 0.04 with the optimal batch size of 64 and cosine annealing will improve the 10-epoch accuracy record.
+- **Description**: Testing a higher learning rate with the best-performing configuration (ResNet-9, batch size 64, cosine LR).
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**:
+  - Model: ResNet-9 (11,173,962 parameters)
+  - BatchNorm: True
+  - Optimizer: SGD(lr=0.04, momentum=0.9)
+  - BATCH_SIZE=64
+  - EPOCHS=10
+  - Cosine LR scheduling: True
+  - Augmentation: RandomCrop(32, padding=4), RandomHorizontalFlip()
+
+```
+$ python main.py
+Using device: cuda
+Pre-loading data...
+Data loaders created in 6.95 seconds.
+Model parameters: 11,173,962
+Config: LR=0.04, BATCH_SIZE=64, EPOCHS=10, COSINE=True
+Epoch [1/10], Loss: 1.6141, Val Accuracy: 50.27%, Duration: 43.22s, Total: 43.2s
+Epoch [2/10], Loss: 1.0645, Val Accuracy: 67.17%, Duration: 41.93s, Total: 85.1s
+Epoch [3/10], Loss: 0.7985, Val Accuracy: 72.21%, Duration: 42.69s, Total: 127.8s
+Epoch [4/10], Loss: 0.6434, Val Accuracy: 74.56%, Duration: 43.19s, Total: 171.0s
+Epoch [5/10], Loss: 0.5400, Val Accuracy: 81.01%, Duration: 42.46s, Total: 213.5s
+Epoch [6/10], Loss: 0.4599, Val Accuracy: 83.14%, Duration: 42.45s, Total: 255.9s
+Epoch [7/10], Loss: 0.3968, Val Accuracy: 85.31%, Duration: 43.31s, Total: 299.2s
+Epoch [8/10], Loss: 0.3395, Val Accuracy: 86.08%, Duration: 42.52s, Total: 341.8s
+Epoch [9/10], Loss: 0.2935, Val Accuracy: 87.88%, Duration: 42.63s, Total: 384.4s
+Epoch [10/10], Loss: 0.2636, Val Accuracy: 88.27%, Duration: 43.41s, Total: 427.8s
+Finished Training. Training loop time: 427.80 seconds
+Final Validation Accuracy: 88.27%
+```
+
+**Analysis**:
+- **New 10-epoch record**: 88.27% vs 87.18% (Run 16, batch 32) and 85.69% (Run 15, batch 64).
+- **Faster and more accurate**: Achieved a better result than the batch size 32 run (87.18%) while being significantly faster (428s vs 534s).
+- **Optimal configuration**: The higher learning rate (0.04) combined with the optimal batch size (64) and cosine annealing proved highly effective.
+- **Excellent convergence**: Reached high accuracy without signs of instability.
+
+**Conclusions**:
+- The combination of a higher learning rate (0.04), a small batch size (64), and cosine scheduling establishes a new state-of-the-art for 10-epoch training in this project. It surpasses the previous best accuracy while being faster.
+
+**Recommendation**: This is the new champion configuration for 10-epoch speedruns. Future experiments for even higher accuracy should extend the number of epochs with this setup.
