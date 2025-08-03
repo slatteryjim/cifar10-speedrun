@@ -12,7 +12,7 @@ def main():
 
     # --- 2. Hyperparameters ---
     LEARNING_RATE = 0.02  # Start with current best LR
-    BATCH_SIZE = 512 * 6  # 3072 - try 6x instead of 8x
+    BATCH_SIZE = 512 // 2  # try 256 for comparison
     EPOCHS = 10
     USE_BN = True  # ResNet typically benefits from BN
     USE_COSINE = False
