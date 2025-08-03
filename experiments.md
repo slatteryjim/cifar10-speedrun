@@ -1142,3 +1142,39 @@ Final Validation Accuracy: 88.03%
 - Automatic Mixed Precision is a major success, providing a substantial speedup for this workload on the T4 GPU. This is the new gold standard for speedrunning.
 
 **Recommendation**: The combination of a higher learning rate, small batch size, cosine scheduling, and AMP is the new champion configuration. The immediate next step is to fix the `GradScaler` deprecation warning in the code.
+
+---
+
+## Run 22: Higher Learning Rate Test (LR=0.08)
+
+- **Hypothesis**: Pushing the learning rate even higher to 0.08 might yield further accuracy gains.
+- **Description**: Same as Run 21, but with `LEARNING_RATE` increased from 0.04 to 0.08.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**: `LR=0.08`, `BATCH_SIZE=64`, `EPOCHS=10`, `COSINE=True`, `AMP=True`
+
+```
+$ python main.py
+Using device: cuda
+Using Automatic Mixed Precision (AMP).
+Pre-loading data...
+Data loaders created in 1.68 seconds.
+Model parameters: 11,173,962
+Config: LR=0.08, BATCH_SIZE=64, EPOCHS=10, COSINE=True, AMP=True
+Epoch [1/10], Loss: 1.7620, Val Accuracy: 47.77%, Duration: 29.62s, Total: 29.6s
+Epoch [2/10], Loss: 1.2053, Val Accuracy: 61.91%, Duration: 29.66s, Total: 59.3s
+Epoch [3/10], Loss: 0.8914, Val Accuracy: 69.37%, Duration: 30.02s, Total: 89.3s
+Epoch [4/10], Loss: 0.6938, Val Accuracy: 74.83%, Duration: 30.01s, Total: 119.3s
+Epoch [5/10], Loss: 0.5747, Val Accuracy: 80.47%, Duration: 29.52s, Total: 148.8s
+Epoch [6/10], Loss: 0.4830, Val Accuracy: 83.02%, Duration: 29.91s, Total: 178.7s
+Epoch [7/10], Loss: 0.4113, Val Accuracy: 84.58%, Duration: 30.06s, Total: 208.8s
+Epoch [8/10], Loss: 0.3505, Val Accuracy: 86.21%, Duration: 29.58s, Total: 238.4s
+Epoch [9/10], Loss: 0.3057, Val Accuracy: 86.74%, Duration: 33.56s, Total: 271.9s
+Epoch [10/10], Loss: 0.2730, Val Accuracy: 87.58%, Duration: 30.47s, Total: 302.4s
+Finished Training. Training loop time: 302.41 seconds
+Final Validation Accuracy: 87.58%
+```
+
+**Analysis**:
+- **Diminishing Returns**: The final accuracy (87.58%) was slightly lower than the 88.03% from Run 21 (LR=0.04).
+- **Conclusion**: This confirms that `LR=0.04` is a better choice for this configuration. The optimal learning rate has likely been found.
+
