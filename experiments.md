@@ -1293,3 +1293,38 @@ Final Validation Accuracy: 86.33%
 - **Performance Regression**: `TrivialAugmentWide` resulted in a lower final accuracy (86.33%) compared to the baseline augmentations (~88%).
 - **Speedup from A100 GPU**: The training was significantly faster (~11s/epoch vs ~28s/epoch) due to the A100 GPU.
 - **Conclusion**: The baseline augmentations are still superior for this 10-epoch setup.
+
+---
+
+## Run 25: Baseline Augmentations on A100 GPU
+
+- **Hypothesis**: Establish a new speed baseline with the A100 GPU using the best-performing standard augmentations.
+- **Description**: Same as Run 23, but on an A100 GPU.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), A100 GPU.
+- **Configuration**: `LR=0.04`, `BATCH_SIZE=64`, `EPOCHS=10`, `COSINE=True`, `AMP=True`, Full data loader optimizations.
+
+```
+$ python main.py
+Using device: cuda
+Using Automatic Mixed Precision (AMP).
+Pre-loading data...
+Data loaders created in 1.67 seconds.
+Model parameters: 11,173,962
+Config: LR=0.04, BATCH_SIZE=64, EPOCHS=10, COSINE=True, AMP=True
+Epoch [1/10], Loss: 1.6028, Val Accuracy: 51.58%, Duration: 11.23s, Total: 11.2s
+Epoch [2/10], Loss: 1.0560, Val Accuracy: 65.32%, Duration: 10.42s, Total: 21.7s
+Epoch [3/10], Loss: 0.7777, Val Accuracy: 76.97%, Duration: 10.15s, Total: 31.8s
+Epoch [4/10], Loss: 0.6233, Val Accuracy: 78.16%, Duration: 10.13s, Total: 41.9s
+Epoch [5/10], Loss: 0.5197, Val Accuracy: 77.93%, Duration: 10.61s, Total: 52.5s
+Epoch [6/10], Loss: 0.4444, Val Accuracy: 83.08%, Duration: 10.52s, Total: 63.1s
+Epoch [7/10], Loss: 0.3777, Val Accuracy: 85.44%, Duration: 9.77s, Total: 72.8s
+Epoch [8/10], Loss: 0.3239, Val Accuracy: 86.79%, Duration: 10.44s, Total: 83.3s
+Epoch [9/10], Loss: 0.2754, Val Accuracy: 88.08%, Duration: 10.63s, Total: 93.9s
+Epoch [10/10], Loss: 0.2507, Val Accuracy: 88.32%, Duration: 10.33s, Total: 104.2s
+Finished Training. Training loop time: 104.23 seconds
+Final Validation Accuracy: 88.32%
+```
+
+**Analysis**:
+- **A100 Speed**: The A100 GPU provides a ~2.7x speedup over the T4 (104s vs. 281s) with the same configuration.
+- **Conclusion**: This establishes a new speed record and highlights the significant impact of hardware on training time.
