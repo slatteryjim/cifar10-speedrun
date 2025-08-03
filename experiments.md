@@ -1328,3 +1328,32 @@ Final Validation Accuracy: 88.32%
 **Analysis**:
 - **A100 Speed**: The A100 GPU provides a ~2.7x speedup over the T4 (104s vs. 281s) with the same configuration.
 - **Conclusion**: This establishes a new speed record and highlights the significant impact of hardware on training time.
+
+---
+
+## Run 26: Ablation Study of Augmentations, using L4 GPU
+
+- **Hypothesis**: Isolating the impact of different augmentations to find the best combination for this setup.
+- **Description**: A series of runs on the L4 GPU, with `ColorJitter` or `RandomRotation` added, or none.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), L4 GPU.
+- **Configuration**: `LR=0.04`, `BATCH_SIZE=64`, `EPOCHS=10`, `COSINE=True`, `AMP=True`.
+
+### Run 26a: ColorJitter
+- **Augmentations**: `RandomCrop`, `RandomHorizontalFlip`, `ColorJitter` (No RandomRotation)
+- **Final Accuracy**: 88.14%
+- **Training Time**: 123.15s
+
+### Run 26b: RandomRotation
+- **Augmentations**: `RandomCrop`, `RandomHorizontalFlip`, `RandomRotation(15)` (No ColorJitter)
+- **Final Accuracy**: 87.16%
+- **Training Time**: 110.81s
+
+### Run 26c: Baseline Augmentations
+- **Augmentations**: `RandomCrop`, `RandomHorizontalFlip`
+- **Final Accuracy**: 88.08%
+- **Training Time**: 107.73s
+
+**Analysis**:
+- **ColorJitter is a Winner**: Adding `ColorJitter` to the baseline augmentations provides a small but noticeable improvement in accuracy (88.14% vs. 88.08%) but with an increase in training time.
+- **RandomRotation is a Loser**: Adding `RandomRotation` hurts performance, lowering the final accuracy to 87.16%.
+- **Conclusion**: The combination of `RandomCrop`, `RandomHorizontalFlip`, and `ColorJitter` is the best so far. But ColorJitter's benefit did not seem worth the speed trade-off.
