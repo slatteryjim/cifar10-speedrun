@@ -143,7 +143,7 @@ def main():
             return x
 
     model = ResNet9().to(device)
-    model = torch.compile(model)  # Easy speedup with torch.compile
+    # model = torch.compile(model)  # This 100 second penalty was not worthwhile at all in our 10 epoch test
     
     # Count parameters
     total_params = sum(p.numel() for p in model.parameters())
