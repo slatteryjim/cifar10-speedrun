@@ -1094,3 +1094,51 @@ Final Validation Accuracy: 88.27%
 - The combination of a higher learning rate (0.04), a small batch size (64), and cosine scheduling establishes a new state-of-the-art for 10-epoch training in this project. It surpasses the previous best accuracy while being faster.
 
 **Recommendation**: This is the new champion configuration for 10-epoch speedruns. Future experiments for even higher accuracy should extend the number of epochs with this setup.
+
+---
+
+## Run 21: Automatic Mixed Precision (AMP) Speed-up (Google Colab, T4 GPU)
+- **Hypothesis**: Enabling Automatic Mixed Precision (AMP) will significantly speed up training with minimal to no loss in accuracy.
+- **Description**: Same as Run 20, but with AMP enabled to leverage the T4 GPU's tensor cores.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**:
+  - Model: ResNet-9 (11,173,962 parameters)
+  - BatchNorm: True
+  - Optimizer: SGD(lr=0.04, momentum=0.9)
+  - BATCH_SIZE=64
+  - EPOCHS=10
+  - Cosine LR scheduling: True
+  - Augmentation: RandomCrop(32, padding=4), RandomHorizontalFlip()
+  - AMP: True
+
+```
+$ python main.py
+Using device: cuda
+Using Automatic Mixed Precision (AMP).
+Pre-loading data...
+Data loaders created in 1.70 seconds.
+Model parameters: 11,173,962
+Config: LR=0.04, BATCH_SIZE=64, EPOCHS=10, COSINE=True, AMP=True
+Epoch [1/10], Loss: 1.6618, Val Accuracy: 51.58%, Duration: 31.41s, Total: 31.4s
+Epoch [2/10], Loss: 1.0884, Val Accuracy: 67.69%, Duration: 30.12s, Total: 61.5s
+Epoch [3/10], Loss: 0.8042, Val Accuracy: 71.30%, Duration: 31.14s, Total: 92.7s
+Epoch [4/10], Loss: 0.6487, Val Accuracy: 74.97%, Duration: 30.27s, Total: 122.9s
+Epoch [5/10], Loss: 0.5450, Val Accuracy: 81.90%, Duration: 30.22s, Total: 153.2s
+Epoch [6/10], Loss: 0.4612, Val Accuracy: 83.42%, Duration: 30.43s, Total: 183.6s
+Epoch [7/10], Loss: 0.3947, Val Accuracy: 85.25%, Duration: 29.80s, Total: 213.4s
+Epoch [8/10], Loss: 0.3356, Val Accuracy: 86.93%, Duration: 30.08s, Total: 243.5s
+Epoch [9/10], Loss: 0.2928, Val Accuracy: 87.60%, Duration: 30.42s, Total: 273.9s
+Epoch [10/10], Loss: 0.2636, Val Accuracy: 88.03%, Duration: 29.82s, Total: 303.7s
+Finished Training. Training loop time: 303.71 seconds
+Final Validation Accuracy: 88.03%
+```
+
+**Analysis**:
+- **Massive Speedup**: Training time dropped by ~29% (304s vs 428s for Run 20) with virtually no impact on accuracy (88.03% vs 88.27%).
+- **Time-to-Accuracy Champion**: This run sets a new record for the fastest time to reach ~88% accuracy.
+- **Efficiency**: Epoch times were consistently around 30 seconds, a significant improvement over the ~43 seconds in the previous run.
+
+**Conclusions**:
+- Automatic Mixed Precision is a major success, providing a substantial speedup for this workload on the T4 GPU. This is the new gold standard for speedrunning.
+
+**Recommendation**: The combination of a higher learning rate, small batch size, cosine scheduling, and AMP is the new champion configuration. The immediate next step is to fix the `GradScaler` deprecation warning in the code.

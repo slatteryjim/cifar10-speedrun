@@ -8,7 +8,10 @@ import time
 def main():
     # --- 1. Device Configuration ---
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    USE_AMP = torch.cuda.is_available()
     print(f"Using device: {device}")
+    if USE_AMP:
+        print("Using Automatic Mixed Precision (AMP).")
 
     # --- 2. Hyperparameters ---
     LEARNING_RATE = 0.04  # Higher LR for 10 epochs + cosine
@@ -150,12 +153,13 @@ def main():
     print(f"Model parameters: {total_params:,}")
 
     # --- 5. Loss Function and Optimizer ---
-    print(f"Config: LR={LEARNING_RATE}, BATCH_SIZE={BATCH_SIZE}, EPOCHS={EPOCHS}, COSINE={USE_COSINE}")
+    print(f"Config: LR={LEARNING_RATE}, BATCH_SIZE={BATCH_SIZE}, EPOCHS={EPOCHS}, COSINE={USE_COSINE}, AMP={USE_AMP}")
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS) if USE_COSINE else None
 
     # --- 6. Training and Validation Loop ---
+    scaler = torch.cuda.amp.GradScaler(enabled=USE_AMP)
     start_time = time.time()
 
     for epoch in range(EPOCHS):
@@ -170,10 +174,16 @@ def main():
             batch_labels = batch_labels.to(device)
             
             optimizer.zero_grad()
-            outputs = model(batch_images)
-            loss = criterion(outputs, batch_labels)
-            loss.backward()
-            optimizer.step()
+            
+            # Use autocast for mixed precision
+            with torch.amp.autocast(device_type=device.type, dtype=torch.float16, enabled=USE_AMP):
+                outputs = model(batch_images)
+                loss = criterion(outputs, batch_labels)
+
+            # Scaler handles the backward pass and optimizer step
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             epoch_loss_tensor += loss.detach()
             num_batches += 1
@@ -192,7 +202,8 @@ def main():
                 test_images = test_images.to(device)
                 test_labels = test_labels.to(device)
                 
-                outputs = model(test_images)
+                with torch.amp.autocast(device_type=device.type, dtype=torch.float16, enabled=USE_AMP):
+                    outputs = model(test_images)
                 _, predicted = torch.max(outputs.data, 1)
                 total += test_labels.size(0)
                 correct += (predicted == test_labels).sum().item()
