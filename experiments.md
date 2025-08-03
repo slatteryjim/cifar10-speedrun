@@ -1050,7 +1050,7 @@ Final Validation Accuracy: 84.08%
 
 ---
 
-## Run 20: Higher Learning Rate with Optimal Batch Size (Google Colab, T4 GPU)
+## Run 20: Higher Learning Rate of 0.04 with Optimal Batch Size (Google Colab, T4 GPU)
 - **Hypothesis**: A higher learning rate of 0.04 with the optimal batch size of 64 and cosine annealing will improve the 10-epoch accuracy record.
 - **Description**: Testing a higher learning rate with the best-performing configuration (ResNet-9, batch size 64, cosine LR).
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
@@ -1178,3 +1178,47 @@ Final Validation Accuracy: 87.58%
 - **Diminishing Returns**: The final accuracy (87.58%) was slightly lower than the 88.03% from Run 21 (LR=0.04).
 - **Conclusion**: This confirms that `LR=0.04` is a better choice for this configuration. The optimal learning rate has likely been found.
 
+---
+
+## Run 23: Intermediate Learning Rate Test (LR=0.06)
+
+- **Hypothesis**: Testing an intermediate learning rate of 0.06 between the best performing 0.04 and the underperforming 0.08 to see if it provides a balance.
+- **Description**: Same configuration as Run 22 but with `LEARNING_RATE` set to 0.06 instead of 0.08.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**: 
+  - Model: ResNet-9 (11,173,962 parameters)
+  - BatchNorm: True
+  - Optimizer: SGD(lr=0.06, momentum=0.9)
+  - BATCH_SIZE=64
+  - EPOCHS=10
+  - Cosine LR scheduling: True
+  - Augmentation: RandomCrop(32, padding=4), RandomHorizontalFlip()
+  - AMP: True
+
+```
+$ python main.py
+Using device: cuda
+Using Automatic Mixed Precision (AMP).
+Pre-loading data...
+Data loaders created in 1.58 seconds.
+Model parameters: 11,173,962
+Config: LR=0.06, BATCH_SIZE=64, EPOCHS=10, COSINE=True, AMP=True
+Epoch [1/10], Loss: 1.7615, Val Accuracy: 44.53%, Duration: 30.48s, Total: 30.5s
+Epoch [2/10], Loss: 1.2078, Val Accuracy: 56.04%, Duration: 31.51s, Total: 62.0s
+Epoch [3/10], Loss: 0.8983, Val Accuracy: 71.24%, Duration: 29.64s, Total: 91.6s
+Epoch [4/10], Loss: 0.7079, Val Accuracy: 75.70%, Duration: 29.44s, Total: 121.1s
+Epoch [5/10], Loss: 0.5784, Val Accuracy: 79.49%, Duration: 30.92s, Total: 152.0s
+Epoch [6/10], Loss: 0.4907, Val Accuracy: 82.25%, Duration: 29.62s, Total: 181.6s
+Epoch [7/10], Loss: 0.4167, Val Accuracy: 84.79%, Duration: 29.64s, Total: 211.2s
+Epoch [8/10], Loss: 0.3548, Val Accuracy: 86.29%, Duration: 30.63s, Total: 241.9s
+Epoch [9/10], Loss: 0.3025, Val Accuracy: 87.11%, Duration: 29.96s, Total: 271.8s
+Epoch [10/10], Loss: 0.2734, Val Accuracy: 87.92%, Duration: 29.90s, Total: 301.7s
+Finished Training. Training loop time: 301.73 seconds
+Final Validation Accuracy: 87.92%
+```
+
+**Analysis**:
+- **Performance**: The final accuracy of 87.92% falls between the results of Run 21 (LR=0.04, 88.03%) and Run 22 (LR=0.08, 87.58%).
+- **Learning Dynamics**: The training progression shows a steady improvement pattern, though starting slower than LR=0.04 in early epochs.
+- **Time Efficiency**: Training completed in 301.73 seconds, which is comparable to other AMP-enabled runs.
+- **Conclusion**: LR=0.06 performs reasonably well but doesn't surpass the accuracy of the best configuration (LR=0.04). This suggests that LR=0.04 remains the optimal choice for this setup, with performance degrading on both sides of this value.
