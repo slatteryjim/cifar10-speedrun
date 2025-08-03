@@ -490,3 +490,56 @@ Final Validation Accuracy: 76.79%
   1. Try longer training (e.g., 20 epochs) since accuracy was still improving
   2. Test with cosine learning rate schedule
   3. Experiment with additional augmentations (e.g., ColorJitter)
+
+## Run 11: Large Batch Size Experiment (Google Colab, T4 GPU)
+- **Hypothesis**: Increasing batch size from 512 to 3072 (6x) should improve GPU utilization and potentially speed up convergence.
+- **Description**: ResNet-9 with data augmentation, but batch size increased to 3072.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**:
+  - Model: ResNet-9 (11,173,962 parameters)
+  - BatchNorm: True
+  - Optimizer: SGD(lr=0.02, momentum=0.9)
+  - BATCH_SIZE=3072 (512*6)
+  - EPOCHS=10
+  - Augmentation: RandomCrop(32, padding=4), RandomHorizontalFlip()
+
+```
+$ python main.py
+Using device: cuda
+Pre-loading data...
+100% 170M/170M [00:05<00:00, 29.5MB/s]
+Data loaders created in 9.70 seconds.
+Model parameters: 11,173,962
+Epoch [1/10], Loss: 2.1307, Val Accuracy: 19.69%, Duration: 52.53s
+Epoch [2/10], Loss: 1.7750, Val Accuracy: 35.32%, Duration: 52.20s
+Epoch [3/10], Loss: 1.5988, Val Accuracy: 42.19%, Duration: 67.16s
+Epoch [4/10], Loss: 1.4828, Val Accuracy: 45.43%, Duration: 69.54s
+Epoch [5/10], Loss: 1.3870, Val Accuracy: 47.28%, Duration: 69.17s
+Epoch [6/10], Loss: 1.3022, Val Accuracy: 51.43%, Duration: 69.67s
+Epoch [7/10], Loss: 1.2217, Val Accuracy: 52.03%, Duration: 69.19s
+Epoch [8/10], Loss: 1.1546, Val Accuracy: 56.59%, Duration: 69.97s
+Epoch [9/10], Loss: 1.0498, Val Accuracy: 51.26%, Duration: 69.16s
+Epoch [10/10], Loss: 1.0498, Val Accuracy: 58.41%, Duration: 70.22s
+Finished Training. Training loop time: 658.81 seconds
+Final Validation Accuracy: 58.41%
+```
+
+**Analysis**: 
+- **Major performance regression**: 58.41% vs previous best of 76.79% (Run 10)
+- **Slower total time**: 658.81s vs 453.69s for baseline batch size 512
+- **Poor convergence**: Much slower learning, peaked around 56-58% accuracy
+- **Epoch timing**: Started at ~52s, increased to ~70s (vs ~45s baseline)
+- **Learning dynamics**: Very slow initial convergence, suggesting learning rate mismatch
+
+**Root Cause Analysis**:
+1. **Learning rate too low for large batch**: LR=0.02 optimal for batch=512, but large batches typically need proportionally higher LR
+2. **Gradient averaging effect**: Larger batches smooth gradients too much, slowing learning
+3. **No LR scaling applied**: Rule of thumb is to scale LR proportionally with batch size
+
+**Conclusions**:
+- Large batch size (3072) significantly hurts both speed and accuracy without LR adjustment
+- The "linear scaling rule" (LR ∝ batch_size) should be tested: try LR=0.12 (0.02 × 6)
+- For time-to-accuracy optimization, batch size 512 remains superior
+- Next experiments should focus on other speedup techniques (torch.compile, mixed precision)
+
+**Recommendation**: Revert to batch size 512 and focus on other optimizations.

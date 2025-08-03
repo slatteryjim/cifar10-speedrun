@@ -12,7 +12,7 @@ def main():
 
     # --- 2. Hyperparameters ---
     LEARNING_RATE = 0.02  # Start with current best LR
-    BATCH_SIZE = 512
+    BATCH_SIZE = 512 * 6  # 3072 - try 6x instead of 8x
     EPOCHS = 10
     USE_BN = True  # ResNet typically benefits from BN
     USE_COSINE = False
@@ -44,7 +44,7 @@ def main():
     )
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
-        batch_size=1000,  # Larger batch size for testing since no augmentation
+        batch_size=BATCH_SIZE,  # Use same batch size for consistency
         shuffle=False,
         num_workers=2,
         pin_memory=True
