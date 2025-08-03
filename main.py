@@ -12,7 +12,7 @@ def main():
 
     # --- 2. Hyperparameters ---
     LEARNING_RATE = 0.02  # Start with current best LR
-    BATCH_SIZE = 128
+    BATCH_SIZE = 64
     EPOCHS = 10
     USE_BN = True  # ResNet typically benefits from BN
     USE_COSINE = False
