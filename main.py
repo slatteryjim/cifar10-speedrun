@@ -4,6 +4,7 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 import time
+import os
 
 def main():
     # --- 1. Device Configuration ---
@@ -42,15 +43,19 @@ def main():
         train_dataset, 
         batch_size=BATCH_SIZE,
         shuffle=True,
-        num_workers=2,
-        pin_memory=True  # This helps speed up data transfer to GPU
+        num_workers=os.cpu_count(),
+        pin_memory=True,  # This helps speed up data transfer to GPU
+        persistent_workers=True,
+        prefetch_factor=2
     )
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
         batch_size=BATCH_SIZE,  # Use same batch size for consistency
         shuffle=False,
-        num_workers=2,
-        pin_memory=True
+        num_workers=os.cpu_count(),
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=2
     )
 
     print(f"Data loaders created in {time.time() - start_load_time:.2f} seconds.")
@@ -145,7 +150,7 @@ def main():
 
             return x
 
-    model = ResNet9().to(device)
+    model = ResNet9().to(device, memory_format=torch.channels_last)
     # model = torch.compile(model)  # This 100 second penalty was not worthwhile at all in our 10 epoch test
     
     # Count parameters
@@ -170,8 +175,8 @@ def main():
         num_batches = 0
         
         for batch_images, batch_labels in train_loader:
-            batch_images = batch_images.to(device)
-            batch_labels = batch_labels.to(device)
+            batch_images = batch_images.to(device, non_blocking=True, memory_format=torch.channels_last)
+            batch_labels = batch_labels.to(device, non_blocking=True)
             
             optimizer.zero_grad()
             
@@ -199,8 +204,8 @@ def main():
         total = 0
         with torch.no_grad():
             for test_images, test_labels in test_loader:
-                test_images = test_images.to(device)
-                test_labels = test_labels.to(device)
+                test_images = test_images.to(device, non_blocking=True, memory_format=torch.channels_last)
+                test_labels = test_labels.to(device, non_blocking=True)
                 
                 with torch.amp.autocast(device_type=device.type, dtype=torch.float16, enabled=USE_AMP):
                     outputs = model(test_images)
