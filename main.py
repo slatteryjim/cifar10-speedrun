@@ -159,7 +159,7 @@ def main():
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS) if USE_COSINE else None
 
     # --- 6. Training and Validation Loop ---
-    scaler = torch.cuda.amp.GradScaler(enabled=USE_AMP)
+    scaler = torch.amp.GradScaler(device, enabled=USE_AMP)
     start_time = time.time()
 
     for epoch in range(EPOCHS):
