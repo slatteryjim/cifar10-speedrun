@@ -984,3 +984,66 @@ Final Validation Accuracy: 90.68%
 - **Ready for further optimization**: Strong foundation for advanced techniques
 
 **Recommendation**: This configuration (batch 64, 20 epochs, cosine) achieved high accuracy, but hopefully we can achieve it even faster.
+
+---
+
+## Run 19: CPU Baseline - ResNet-9 (CPU, No GPU)
+- **Hypothesis**: Establish CPU performance baseline for ResNet-9 configuration to compare against GPU speedup.
+- **Description**: Same optimal batch 64 configuration but running on CPU to measure performance difference.
+- **Hardware**: CPU only (no GPU available).
+- **Configuration**:
+  - Model: ResNet-9 (11,173,962 parameters)
+  - BatchNorm: True
+  - Optimizer: SGD(lr=0.02, momentum=0.9)
+  - BATCH_SIZE=64
+  - EPOCHS=10
+  - Cosine LR scheduling: False
+  - Augmentation: RandomCrop(32, padding=4), RandomHorizontalFlip()
+
+```
+$ python main.py
+Using device: cpu
+Pre-loading data...
+Data loaders created in 1.62 seconds.
+Model parameters: 11,173,962
+Config: LR=0.02, BATCH_SIZE=64, EPOCHS=10, COSINE=False
+Epoch [1/10], Loss: 1.5742, Val Accuracy: 56.93%, Duration: 742.44s, Total: 742.4s
+Epoch [2/10], Loss: 1.0238, Val Accuracy: 63.80%, Duration: 747.13s, Total: 1489.6s
+Epoch [3/10], Loss: 0.7791, Val Accuracy: 71.32%, Duration: 748.47s, Total: 2238.0s
+Epoch [4/10], Loss: 0.6461, Val Accuracy: 79.34%, Duration: 750.94s, Total: 2989.0s
+Epoch [5/10], Loss: 0.5575, Val Accuracy: 79.21%, Duration: 751.97s, Total: 3741.0s
+Epoch [6/10], Loss: 0.4938, Val Accuracy: 83.51%, Duration: 762.46s, Total: 4503.4s
+Epoch [7/10], Loss: 0.4376, Val Accuracy: 82.51%, Duration: 783.52s, Total: 5286.9s
+Epoch [8/10], Loss: 0.4028, Val Accuracy: 83.89%, Duration: 749.31s, Total: 6036.2s
+Epoch [9/10], Loss: 0.3672, Val Accuracy: 85.86%, Duration: 751.46s, Total: 6787.7s
+Epoch [10/10], Loss: 0.3358, Val Accuracy: 84.08%, Duration: 751.84s, Total: 7539.6s
+Finished Training. Training loop time: 7539.55 seconds
+Final Validation Accuracy: 84.08%
+```
+
+**Analysis**:
+- **CPU performance**: 84.08% accuracy vs 85.69% GPU (Run 15) - only 1.61% accuracy loss
+- **Massive time difference**: 7539.55s (125.7 minutes) vs 437s GPU (7.3 minutes) = 17.3× slower
+- **Consistent epoch timing**: ~750s per epoch, very stable CPU performance
+- **Peak accuracy**: 85.86% at epoch 9, showing excellent learning capability
+- **Strong convergence**: Similar learning dynamics to GPU version
+
+**Key Insights**:
+1. **CPU accuracy competitive**: ResNet-9 performs nearly as well on CPU as GPU
+2. **Time penalty severe**: 17× slower makes GPU essential for speedrunning
+3. **Memory efficiency**: No GPU memory constraints, handles batch size 64 easily
+4. **Training stability**: Very consistent timing and convergence patterns
+
+**GPU vs CPU Comparison**:
+- **Speed**: GPU 17.3× faster (7.3 min vs 125.7 min)
+- **Accuracy**: GPU marginally better (85.69% vs 84.08%)
+- **Efficiency**: GPU clearly superior for time-sensitive experiments
+- **Accessibility**: CPU provides backup option when GPU unavailable
+
+**Conclusions**:
+- **GPU essential for speedrunning**: 17× speedup makes GPU mandatory for fast iteration
+- **CPU viable for accuracy**: Can achieve 84%+ accuracy when time isn't critical
+- **Architecture robust**: ResNet-9 performs consistently across hardware platforms
+- **Baseline established**: 84.08% CPU accuracy provides hardware-independent reference
+
+**Recommendation**: Use GPU for all speedrunning experiments; CPU acceptable for overnight accuracy runs.
