@@ -1257,3 +1257,39 @@ Final Validation Accuracy: 87.89%
 **Analysis**:
 - **Final Speedup**: The fully optimized pipeline resulted in a ~7% speedup over Run 21 (281s vs. 304s), with epoch times now consistently under 28 seconds.
 - **Conclusion**: This is the fastest and most efficient configuration so far, establishing a new time-to-accuracy record. All low-hanging fruit for speed optimization has likely been picked.
+
+---
+
+## Run 24: TrivialAugmentWide, A100 GPU for speed
+
+- **Hypothesis**: Using `TrivialAugmentWide` will improve accuracy over the baseline augmentations.
+- **Description**: Replaced `RandomCrop` and `RandomHorizontalFlip` with `TrivialAugmentWide`.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), A100 GPU.
+- **Configuration**: `LR=0.04`, `BATCH_SIZE=64`, `EPOCHS=10`, `COSINE=True`, `AMP=True`, `TrivialAugmentWide`
+
+```
+Using device: cuda
+Using Automatic Mixed Precision (AMP).
+Pre-loading data...
+100% 170M/170M [00:04<00:00, 38.8MB/s]
+Data loaders created in 7.80 seconds.
+Model parameters: 11,173,962
+Config: LR=0.04, BATCH_SIZE=64, EPOCHS=10, COSINE=True, AMP=True
+Epoch [1/10], Loss: 1.9040, Val Accuracy: 43.64%, Duration: 13.19s, Total: 13.2s
+Epoch [2/10], Loss: 1.4482, Val Accuracy: 60.86%, Duration: 11.05s, Total: 24.2s
+Epoch [3/10], Loss: 1.1706, Val Accuracy: 68.31%, Duration: 10.81s, Total: 35.1s
+Epoch [4/10], Loss: 1.0102, Val Accuracy: 73.85%, Duration: 10.33s, Total: 45.4s
+Epoch [5/10], Loss: 0.8849, Val Accuracy: 79.03%, Duration: 10.67s, Total: 56.1s
+Epoch [6/10], Loss: 0.7808, Val Accuracy: 81.25%, Duration: 10.80s, Total: 66.8s
+Epoch [7/10], Loss: 0.6949, Val Accuracy: 83.22%, Duration: 11.01s, Total: 77.9s
+Epoch [8/10], Loss: 0.6203, Val Accuracy: 84.53%, Duration: 10.77s, Total: 88.6s
+Epoch [9/10], Loss: 0.5523, Val Accuracy: 85.47%, Duration: 10.73s, Total: 99.4s
+Epoch [10/10], Loss: 0.5081, Val Accuracy: 86.33%, Duration: 10.69s, Total: 110.1s
+Finished Training. Training loop time: 110.05 seconds
+Final Validation Accuracy: 86.33%
+```
+
+**Analysis**:
+- **Performance Regression**: `TrivialAugmentWide` resulted in a lower final accuracy (86.33%) compared to the baseline augmentations (~88%).
+- **Speedup from A100 GPU**: The training was significantly faster (~11s/epoch vs ~28s/epoch) due to the A100 GPU.
+- **Conclusion**: The baseline augmentations are still superior for this 10-epoch setup.
