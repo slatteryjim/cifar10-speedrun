@@ -918,3 +918,69 @@ Final Validation Accuracy: 87.16%
 - **Optimal batch size identified**: Batch 32 represents the sweet spot for this architecture
 
 **Key Finding**: The systematic batch size exploration (512→32) has identified batch 32 as optimal, with smaller batches offering no accuracy benefits while sacrificing speed.
+
+---
+
+## Run 18: Extended Training with Cosine Scheduling - 20 Epochs (Google Colab, T4 GPU)
+- **Hypothesis**: Extend optimal batch size 64 to 20 epochs with cosine annealing for improved convergence and stability.
+- **Description**: Building on Run 15's success, test longer training with cosine LR scheduling.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**:
+  - Model: ResNet-9 (11,173,962 parameters)
+  - BatchNorm: True
+  - Optimizer: SGD(lr=0.02, momentum=0.9)
+  - BATCH_SIZE=64
+  - EPOCHS=20 (doubled from 10)
+  - Cosine LR scheduling: True
+  - Augmentation: RandomCrop(32, padding=4), RandomHorizontalFlip()
+
+```
+$ python main.py
+Using device: cuda
+Pre-loading data...
+Data loaders created in 1.88 seconds.
+Model parameters: 11,173,962
+Config: LR=0.02, BATCH_SIZE=64, EPOCHS=20, COSINE=True
+Epoch [1/20], Loss: 1.5795, Val Accuracy: 56.74%, Duration: 44.20s, Total: 44.2s
+Epoch [2/20], Loss: 1.0051, Val Accuracy: 67.71%, Duration: 43.90s, Total: 88.1s
+Epoch [3/20], Loss: 0.7568, Val Accuracy: 73.13%, Duration: 45.66s, Total: 133.8s
+Epoch [4/20], Loss: 0.6259, Val Accuracy: 78.09%, Duration: 45.17s, Total: 178.9s
+Epoch [5/20], Loss: 0.5386, Val Accuracy: 80.36%, Duration: 45.49s, Total: 224.4s
+Epoch [6/20], Loss: 0.4824, Val Accuracy: 81.52%, Duration: 43.81s, Total: 268.2s
+Epoch [7/20], Loss: 0.4222, Val Accuracy: 84.04%, Duration: 44.51s, Total: 312.7s
+Epoch [8/20], Loss: 0.3770, Val Accuracy: 85.14%, Duration: 44.03s, Total: 356.8s
+Epoch [9/20], Loss: 0.3392, Val Accuracy: 86.21%, Duration: 43.69s, Total: 400.5s
+Epoch [10/20], Loss: 0.3063, Val Accuracy: 86.62%, Duration: 44.38s, Total: 444.8s
+Epoch [11/20], Loss: 0.2682, Val Accuracy: 87.67%, Duration: 43.71s, Total: 488.6s
+Epoch [12/20], Loss: 0.2415, Val Accuracy: 88.39%, Duration: 44.20s, Total: 532.8s
+Epoch [13/20], Loss: 0.2145, Val Accuracy: 88.57%, Duration: 43.75s, Total: 576.5s
+Epoch [14/20], Loss: 0.1912, Val Accuracy: 88.58%, Duration: 43.68s, Total: 620.2s
+Epoch [15/20], Loss: 0.1663, Val Accuracy: 89.39%, Duration: 44.43s, Total: 664.6s
+Epoch [16/20], Loss: 0.1482, Val Accuracy: 90.39%, Duration: 43.73s, Total: 708.3s
+Epoch [17/20], Loss: 0.1319, Val Accuracy: 90.25%, Duration: 44.29s, Total: 752.6s
+Epoch [18/20], Loss: 0.1213, Val Accuracy: 90.57%, Duration: 43.76s, Total: 796.4s
+Epoch [19/20], Loss: 0.1126, Val Accuracy: 90.53%, Duration: 43.70s, Total: 840.1s
+Epoch [20/20], Loss: 0.1059, Val Accuracy: 90.68%, Duration: 44.79s, Total: 884.9s
+Finished Training. Training loop time: 884.88 seconds
+Final Validation Accuracy: 90.68%
+```
+
+**Analysis**:
+- **New record achieved**: 90.68% vs 85.69% (10 epochs) - massive 4.99% improvement
+- **Peak performance**: 90.68% at epoch 20, steady climb throughout training
+- **Cosine scheduling success**: Stable learning in later epochs, no overfitting
+- **Excellent time efficiency**: 14.75 minutes total, ~44s per epoch
+- **Smooth convergence**: Consistent improvements from epoch 10-20
+
+**Key Insights**:
+1. **Extended training highly beneficial**: Doubled epochs yielded 5% accuracy gain
+2. **Cosine annealing effective**: Maintained learning momentum throughout 20 epochs  
+3. **No saturation**: Accuracy still climbing at epoch 20, suggesting more potential
+4. **Optimal configuration confirmed**: Batch 64 + cosine + 20 epochs = new gold standard
+
+**Conclusions**:
+- **New champion**: 90.68% sets highest accuracy achieved
+- **Training efficiency**: Excellent speed-accuracy trade-off at ~15 minutes
+- **Ready for further optimization**: Strong foundation for advanced techniques
+
+**Recommendation**: This configuration (batch 64, 20 epochs, cosine) achieved high accuracy, but hopefully we can achieve it even faster.

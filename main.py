@@ -12,10 +12,10 @@ def main():
 
     # --- 2. Hyperparameters ---
     LEARNING_RATE = 0.02  # Start with current best LR
-    BATCH_SIZE = 16
-    EPOCHS = 10
+    BATCH_SIZE = 64
+    EPOCHS = 20
     USE_BN = True  # ResNet typically benefits from BN
-    USE_COSINE = False
+    USE_COSINE = True
     
     print("Pre-loading data...")
     start_load_time = time.time()
@@ -150,6 +150,7 @@ def main():
     print(f"Model parameters: {total_params:,}")
 
     # --- 5. Loss Function and Optimizer ---
+    print(f"Config: LR={LEARNING_RATE}, BATCH_SIZE={BATCH_SIZE}, EPOCHS={EPOCHS}, COSINE={USE_COSINE}")
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS) if USE_COSINE else None
