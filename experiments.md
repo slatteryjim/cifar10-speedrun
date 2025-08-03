@@ -875,3 +875,46 @@ Final Validation Accuracy: 87.18%
 - **Architecture limits approached**: Diminishing returns suggest optimal region found
 
 **Recommendation**: Batch 32 for maximum accuracy, batch 64 for optimal speed-accuracy balance.
+
+---
+
+## Run 17: Batch Size 16 - Testing scaling limit
+
+- **Hypothesis**: Test if the batch size scaling trend continues below 32, expecting diminishing returns.
+- **Description**: Halving batch size from 32 to 16 to explore scaling limit.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**:
+  - Model: ResNet-9 (11,173,962 parameters)
+  - BatchNorm: True
+  - Optimizer: SGD(lr=0.02, momentum=0.9)
+  - BATCH_SIZE=16 (32/2)
+  - EPOCHS=10
+  - Augmentation: RandomCrop(32, padding=4), RandomHorizontalFlip()
+
+```
+$ python main.py
+Using device: cuda
+Pre-loading data...
+Data loaders created in 1.66 seconds.
+Model parameters: 11,173,962
+Epoch [1/10], Loss: 1.6753, Val Accuracy: 52.10%, Duration: 68.94s, Total: 68.9s
+Epoch [2/10], Loss: 1.0907, Val Accuracy: 68.44%, Duration: 68.67s, Total: 137.6s
+Epoch [3/10], Loss: 0.8154, Val Accuracy: 76.09%, Duration: 69.64s, Total: 207.2s
+Epoch [4/10], Loss: 0.6584, Val Accuracy: 79.03%, Duration: 68.50s, Total: 275.8s
+Epoch [5/10], Loss: 0.5683, Val Accuracy: 82.87%, Duration: 69.49s, Total: 345.2s
+Epoch [6/10], Loss: 0.5006, Val Accuracy: 84.60%, Duration: 68.05s, Total: 413.3s
+Epoch [7/10], Loss: 0.4472, Val Accuracy: 86.33%, Duration: 68.02s, Total: 481.3s
+Epoch [8/10], Loss: 0.4023, Val Accuracy: 85.67%, Duration: 69.60s, Total: 550.9s
+Epoch [9/10], Loss: 0.3697, Val Accuracy: 87.21%, Duration: 68.90s, Total: 619.8s
+Epoch [10/10], Loss: 0.3393, Val Accuracy: 87.16%, Duration: 70.07s, Total: 689.9s
+Finished Training. Training loop time: 689.89 seconds
+Final Validation Accuracy: 87.16%
+```
+
+**Analysis**:
+- **Scaling trend breaks**: 87.16% vs 87.18% (batch 32) - essentially identical performance
+- **Diminishing returns confirmed**: No meaningful accuracy gain despite doubling parameter updates
+- **Significant speed penalty**: 690s vs 534s (batch 32) - 29% slower for same accuracy
+- **Optimal batch size identified**: Batch 32 represents the sweet spot for this architecture
+
+**Key Finding**: The systematic batch size exploration (512→32) has identified batch 32 as optimal, with smaller batches offering no accuracy benefits while sacrificing speed.
