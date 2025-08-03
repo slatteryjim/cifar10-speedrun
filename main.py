@@ -12,7 +12,7 @@ def main():
 
     # --- 2. Hyperparameters ---
     LEARNING_RATE = 0.02  # Start with current best LR
-    BATCH_SIZE = 512 // 2  # try 256 for comparison
+    BATCH_SIZE = 256  # optimal batch size from Run 12
     EPOCHS = 10
     USE_BN = True  # ResNet typically benefits from BN
     USE_COSINE = False
@@ -143,6 +143,7 @@ def main():
             return x
 
     model = ResNet9().to(device)
+    model = torch.compile(model)  # Easy speedup with torch.compile
     
     # Count parameters
     total_params = sum(p.numel() for p in model.parameters())
@@ -160,7 +161,7 @@ def main():
         epoch_start_time = time.time()
         # --- Training ---
         model.train()
-        epoch_loss = 0.0
+        epoch_loss_tensor = torch.tensor(0.0, device=device)
         num_batches = 0
         
         for batch_images, batch_labels in train_loader:
@@ -173,10 +174,10 @@ def main():
             loss.backward()
             optimizer.step()
 
-            epoch_loss += loss.item()
+            epoch_loss_tensor += loss.detach()
             num_batches += 1
 
-        avg_loss = epoch_loss / num_batches if num_batches > 0 else 0.0
+        avg_loss = (epoch_loss_tensor / num_batches).item() if num_batches > 0 else 0.0
 
         if scheduler is not None:
             scheduler.step()
@@ -197,7 +198,8 @@ def main():
         
         val_accuracy = 100 * correct / total
         epoch_duration = time.time() - epoch_start_time
-        print(f'Epoch [{epoch+1}/{EPOCHS}], Loss: {avg_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%, Duration: {epoch_duration:.2f}s')
+        total_elapsed = time.time() - start_time
+        print(f'Epoch [{epoch+1}/{EPOCHS}], Loss: {avg_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%, Duration: {epoch_duration:.2f}s, Total: {total_elapsed:.1f}s')
 
     end_time = time.time()
     total_time = end_time - start_time

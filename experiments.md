@@ -606,3 +606,64 @@ Final Validation Accuracy: 80.51%
 2. Try mixed precision training
 3. Experiment with cosine learning rate schedule
 4. Extend to 15-20 epochs to see if 82%+ is achievable
+
+## Run 13: torch.compile and GPU Sync Optimization (Google Colab, T4 GPU)
+- **Hypothesis**: Adding torch.compile and eliminating GPU syncs from loss.item() should provide additional speedup over the batch 256 baseline.
+- **Description**: Same as Run 12 but with torch.compile enabled and epoch loss accumulated on GPU tensor to avoid CPU↔GPU syncs.
+- **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
+- **Configuration**:
+  - Model: ResNet-9 (11,173,962 parameters)
+  - BatchNorm: True
+  - Optimizer: SGD(lr=0.02, momentum=0.9)
+  - BATCH_SIZE=256
+  - EPOCHS=10
+  - Augmentation: RandomCrop(32, padding=4), RandomHorizontalFlip()
+  - torch.compile: Enabled
+  - GPU sync optimization: epoch_loss_tensor instead of loss.item() per batch
+
+**torch.compile Results:**
+```
+Using device: cuda
+Pre-loading data...
+Data loaders created in 1.73 seconds.
+Model parameters: 11,173,962
+W0803 04:17:01.695000 12468 torch/_inductor/utils.py:1137] [0/0] Not enough SMs to use max_autotune_gemm mode
+Epoch [1/10], Loss: 1.6321, Val Accuracy: 49.57%, Duration: 148.70s, Total: 148.7s
+Epoch [2/10], Loss: 1.1619, Val Accuracy: 58.58%, Duration: 40.72s, Total: 189.4s
+Epoch [3/10], Loss: 0.9316, Val Accuracy: 65.95%, Duration: 41.45s, Total: 230.9s
+```
+
+**GPU Sync Optimization Only (no torch.compile):**
+```
+Using device: cuda
+Pre-loading data...
+Data loaders created in 1.70 seconds.
+Model parameters: 11,173,962
+Beginning training epochs.
+Epoch [1/10], Loss: 1.6257, Val Accuracy: 49.41%, Duration: 41.68s, Total: 41.7s
+Epoch [2/10], Loss: 1.1767, Val Accuracy: 58.09%, Duration: 43.65s, Total: 85.3s
+```
+
+**Analysis**:
+
+**torch.compile Performance:**
+- **Massive first-epoch overhead**: 148.70s vs ~41s baseline (3.6× slower)
+- **Subsequent epochs faster**: 40.72s vs 41-44s baseline (~3-7% speedup)
+- **Net effect for 10 epochs**: ~517s vs ~430s baseline (20% slower overall)
+- **Would pay off**: Only for 15+ epoch runs or multiple sequential experiments
+
+**GPU Sync Optimization:**
+- **No measurable improvement**: 41.68s vs 41-44s baseline
+- **Why it didn't help**:
+  1. Only ~195 batches per epoch (not thousands)
+  2. GPU utilization already good with batch size 256
+  3. Validation syncs likely dominate any training sync overhead
+  4. T4 GPU efficiently handles the sync pattern
+
+**Conclusions**:
+1. **torch.compile not recommended** for single 10-epoch runs due to compilation overhead
+2. **GPU sync optimization unnecessary** for this batch size and model configuration
+3. **Current setup already efficient**: Batch 256 baseline remains optimal
+4. **Diminishing returns**: Further micro-optimizations unlikely to provide significant gains
+
+**Recommendation**: Stick with the simple, clean Run 12 configuration (batch 256, no torch.compile, standard loss tracking) for best time-to-accuracy performance.
