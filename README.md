@@ -48,12 +48,22 @@ CIFAR-10 is a classic computer vision dataset consisting of 60,000 32x32 color i
 - Cosine schedule:
   - USE_COSINE=True with fixed EPOCHS; consider warmup or longer training for benefit. Recent run with lr=0.02, momentum=0.9, cosine over 10 epochs achieved 71.78% on CPU.
 
-Refer to experiments.md for exact runs:
-- Adam vs SGD (Run 7a/7b): Adam did not beat tuned SGD in final accuracy for this small CNN.
-- BN on CPU (Run 8/8b): BN without momentum underperformed; BN+momentum improved accuracy but was slower on CPU.
-- Momentum alone (Run 8c): Solid gains with low overhead; best CPU trade-off.
-- Weight decay and cosine (Run 8d/8e): Did not beat fixed LR momentum in 10 epochs.
-- Raised LR (Run 8f): lr=0.02 with momentum=0.9 achieved 71.87% on CPU without BN.
+## Experiment Summary
+
+A detailed log of all experiments is available in `experiments.md`. Here is a high-level summary of the key findings:
+
+*   **Initial Baseline (Runs 1-6):** Established a simple CNN baseline, first on CPU (~69%) and then GPU (~71%). Early experiments showed massive speedups from optimizing the data loading pipeline (pre-loading and normalization), reducing training loop time from ~287s to ~14s on GPU.
+*   **SimpleCNN Tuning (Runs 7-8):** Found that for a small CNN, well-tuned SGD with momentum (lr=0.02, momentum=0.9) outperformed Adam and was the best configuration on CPU, achieving **71.87%** accuracy. BatchNorm slowed down CPU execution without providing a clear accuracy benefit.
+*   **Architecture Change to ResNet-9 (Run 9):** Switching to a ResNet-9 model on a GPU immediately boosted accuracy to **75.54%**, demonstrating the power of a better architecture.
+*   **The Power of Small Batches (Runs 10-17):** A systematic sweep of batch sizes from 512 down to 16 revealed a surprising trend: smaller batch sizes consistently improved accuracy. Batch size 32 achieved **87.18%**, while batch size 64 hit **85.69%** in just 10 epochs.
+*   **Reaching 90% Accuracy (Run 18):** By extending training to 20 epochs with a cosine learning rate schedule and the optimal batch size of 64, the model reached **90.68%** accuracy.
+*   **Advanced Optimizations (Runs 19-26):**
+    *   **Learning Rate:** Found an optimal LR of 0.04 for the ResNet-9 setup, hitting **88.27%** in 10 epochs.
+    *   **Mixed Precision (AMP):** Using AMP provided a **~29% speedup** on a T4 GPU with no loss in accuracy.
+    *   **Hardware:** An A100 GPU was ~2.7x faster than a T4.
+    *   **Augmentations:** Adding `ColorJitter` provided a slight accuracy boost, while `TrivialAugmentWide` and `RandomRotation` were less effective than the baseline augmentations for this setup.
+
+The final recommended configuration for a fast, high-accuracy 10-epoch run is ResNet-9, batch size 64, LR=0.04, cosine schedule, and AMP enabled.
 
 ## Suggested next experiments
 - Add simple augmentation (RandomCrop(32, padding=4), RandomHorizontalFlip) to push >75% without changing model depth.
