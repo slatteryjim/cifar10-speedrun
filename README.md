@@ -39,7 +39,7 @@ CIFAR-10 is a classic computer vision dataset consisting of 60,000 32x32 color i
   - Command: `python main.py`
   - Expected on T4: ~88% in ~5 min with AMP, batch size 64, LR=0.04, cosine
 - CPU-only baseline (slower):
-  - Same command. Expect 80–85% with ResNet-9, but much longer per-epoch time.
+  - Same command. Expect 80–85% with ResNet-18, but much longer per-epoch time.
   
 
 ## Experiment Summary
@@ -52,12 +52,12 @@ A detailed log of all experiments is available in `experiments.md`. Here is a hi
 *   **The Power of Small Batches (Runs 10-17):** A systematic sweep of batch sizes from 512 down to 16 revealed a surprising trend: smaller batch sizes consistently improved accuracy. Batch size 32 achieved **87.18%**, while batch size 64 hit **85.69%** in just 10 epochs.
 *   **Reaching 90% Accuracy (Run 18):** By extending training to 20 epochs with a cosine learning rate schedule and the optimal batch size of 64, the model reached **90.68%** accuracy.
 *   **Advanced Optimizations (Runs 19-26):**
-    *   **Learning Rate:** Found an optimal LR of 0.04 for the ResNet-9 setup, hitting **88.27%** in 10 epochs.
+    *   **Learning Rate:** Found an optimal LR of 0.04 for the ResNet-18 setup, hitting **88.27%** in 10 epochs.
     *   **Mixed Precision (AMP):** Using AMP provided a **~29% speedup** on a T4 GPU with no loss in accuracy.
     *   **Hardware:** An A100 GPU was ~2.7x faster than a T4.
     *   **Augmentations:** Adding `ColorJitter` provided a slight accuracy boost, while `TrivialAugmentWide` and `RandomRotation` were less effective than the baseline augmentations for this setup.
 
-The final recommended configuration for a fast, high-accuracy 10-epoch run is ResNet-9, batch size 64, LR=0.04, cosine schedule, and AMP enabled.
+The final recommended configuration for a fast, high-accuracy 10-epoch run is ResNet-18, batch size 64, LR=0.04, cosine schedule, and AMP enabled.
 
 ## Suggested next experiments
 - Add simple augmentation (RandomCrop(32, padding=4), RandomHorizontalFlip) to push >75% without changing model depth.

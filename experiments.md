@@ -380,12 +380,12 @@ Final Validation Accuracy: 71.78%
 
 - Result: Cosine with lr=0.02, momentum=0.9 essentially matches the best fixed-LR baseline (71.78% vs 71.87%) with similar time (~195–197s total). Over only 10 epochs, cosine does not clearly outperform fixed LR; it may benefit more from longer horizons or a brief warmup. Next: consider EPOCHS=30–50, CosineAnnealingWarmRestarts, or modest LR sweeps.
 
-## Run 9: ResNet-9 Model (Google Colab, T4 GPU)
+## Run 9: ResNet-18 Model (Google Colab, T4 GPU)
 - **Hypothesis**: A deeper model with residual connections and BatchNorm should improve accuracy significantly.
-- **Description**: Switched to ResNet-9 architecture with residual blocks, BatchNorm throughout.
+- **Description**: Switched to ResNet-18 architecture with residual blocks, BatchNorm throughout.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=512
@@ -442,12 +442,12 @@ Epoch [3/10], Loss: 0.8609, Val Accuracy: 64.91%, Duration: 953.06s
 Epoch [4/10], Loss: 0.6332, Val Accuracy: 64.90%, Duration: 1012.34s
 ```
 
-## Run 10: ResNet-9 with Data Augmentation (Google Colab, T4 GPU)
+## Run 10: ResNet-18 with Data Augmentation (Google Colab, T4 GPU)
 - **Hypothesis**: Adding data augmentation (RandomCrop and RandomHorizontalFlip) should improve generalization and final accuracy.
-- **Description**: Same ResNet-9 architecture but with data augmentation during training.
+- **Description**: Same ResNet-18 architecture but with data augmentation during training.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=512
@@ -493,10 +493,10 @@ Final Validation Accuracy: 76.79%
 
 ## Run 11: Large Batch Size Experiment (Google Colab, T4 GPU)
 - **Hypothesis**: Increasing batch size from 512 to 3072 (6x) should improve GPU utilization and potentially speed up convergence.
-- **Description**: ResNet-9 with data augmentation, but batch size increased to 3072.
+- **Description**: ResNet-18 with data augmentation, but batch size increased to 3072.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=3072 (512*6)
@@ -546,10 +546,10 @@ Final Validation Accuracy: 58.41%
 
 ## Run 12: Smaller Batch Size Experiment (Google Colab, T4 GPU)
 - **Hypothesis**: Reducing batch size from 512 to 256 might improve convergence despite lower GPU utilization.
-- **Description**: ResNet-9 with data augmentation, but batch size reduced to 256.
+- **Description**: ResNet-18 with data augmentation, but batch size reduced to 256.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=256 (512/2)
@@ -596,7 +596,7 @@ Final Validation Accuracy: 80.51%
 - Stable final performance: 80.51% with minimal overfitting
 
 **Conclusions**:
-- **New baseline established**: Batch size 256 is optimal for this ResNet-9 + CIFAR-10 setup
+- **New baseline established**: Batch size 256 is optimal for this ResNet-18 + CIFAR-10 setup
 - **Contradicts conventional wisdom**: Smaller batch size outperformed larger ones
 - **Time-to-accuracy champion**: Best combination of speed and final accuracy achieved
 - **Robust training**: Consistent performance without hyperparameter tuning
@@ -612,7 +612,7 @@ Final Validation Accuracy: 80.51%
 - **Description**: Same as Run 12 but with torch.compile enabled and epoch loss accumulated on GPU tensor to avoid CPU↔GPU syncs.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=256
@@ -673,7 +673,7 @@ Epoch [2/10], Loss: 1.1767, Val Accuracy: 58.09%, Duration: 43.65s, Total: 85.3s
 - **Description**: Same as Run 12 but with batch size halved to 128.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=128 (256/2)
@@ -740,7 +740,7 @@ Final Validation Accuracy: 82.62%
 - **Description**: Same as Run 14 but with batch size halved again to 64.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=64 (128/2)
@@ -792,7 +792,7 @@ Final Validation Accuracy: 85.69%
 - **Overturns conventional wisdom**: "Larger batches for better GPU utilization" proven false for this case
 - **Gradient noise as optimization tool**: Smaller batches enable superior loss landscape exploration
 - **Frequency over efficiency**: More frequent small updates outperform fewer large updates
-- **Architecture-specific optimization**: ResNet-9 + CIFAR-10 benefits dramatically from high-frequency training
+- **Architecture-specific optimization**: ResNet-18 + CIFAR-10 benefits dramatically from high-frequency training
 
 **Performance Metrics**:
 - **New accuracy record**: 85.69% (previous best: 82.62%)
@@ -807,7 +807,7 @@ Final Validation Accuracy: 85.69%
 
 **Conclusions**:
 - **New champion established**: Batch size 64 sets new gold standard for this architecture
-- **Paradigm shift confirmed**: Small batch training superior for ResNet-9 + CIFAR-10 + data augmentation
+- **Paradigm shift confirmed**: Small batch training superior for ResNet-18 + CIFAR-10 + data augmentation
 - **Ready for advanced experiments**: Perfect foundation for longer training, LR scheduling, and optimization techniques
 - **Speedrunning excellence**: Achieves state-of-the-art results in minimal time with systematic approach
 
@@ -828,7 +828,7 @@ This run represents a methodical triumph of systematic experimentation over conv
 - **Description**: Same as Run 15 but with batch size halved to 32.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=32 (64/2)
@@ -884,7 +884,7 @@ Final Validation Accuracy: 87.18%
 - **Description**: Halving batch size from 32 to 16 to explore scaling limit.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=16 (32/2)
@@ -926,7 +926,7 @@ Final Validation Accuracy: 87.16%
 - **Description**: Building on Run 15's success, test longer training with cosine LR scheduling.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=64
@@ -987,12 +987,12 @@ Final Validation Accuracy: 90.68%
 
 ---
 
-## Run 19: CPU Baseline - ResNet-9 (CPU, No GPU)
-- **Hypothesis**: Establish CPU performance baseline for ResNet-9 configuration to compare against GPU speedup.
+## Run 19: CPU Baseline - ResNet-18 (CPU, No GPU)
+- **Hypothesis**: Establish CPU performance baseline for ResNet-18 configuration to compare against GPU speedup.
 - **Description**: Same optimal batch 64 configuration but running on CPU to measure performance difference.
 - **Hardware**: CPU only (no GPU available).
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.02, momentum=0.9)
   - BATCH_SIZE=64
@@ -1029,7 +1029,7 @@ Final Validation Accuracy: 84.08%
 - **Strong convergence**: Similar learning dynamics to GPU version
 
 **Key Insights**:
-1. **CPU accuracy competitive**: ResNet-9 performs nearly as well on CPU as GPU
+1. **CPU accuracy competitive**: ResNet-18 performs nearly as well on CPU as GPU
 2. **Time penalty severe**: 17× slower makes GPU essential for speedrunning
 3. **Memory efficiency**: No GPU memory constraints, handles batch size 64 easily
 4. **Training stability**: Very consistent timing and convergence patterns
@@ -1043,7 +1043,7 @@ Final Validation Accuracy: 84.08%
 **Conclusions**:
 - **GPU essential for speedrunning**: 17× speedup makes GPU mandatory for fast iteration
 - **CPU viable for accuracy**: Can achieve 84%+ accuracy when time isn't critical
-- **Architecture robust**: ResNet-9 performs consistently across hardware platforms
+- **Architecture robust**: ResNet-18 performs consistently across hardware platforms
 - **Baseline established**: 84.08% CPU accuracy provides hardware-independent reference
 
 **Recommendation**: Use GPU for all speedrunning experiments; CPU acceptable for overnight accuracy runs.
@@ -1052,10 +1052,10 @@ Final Validation Accuracy: 84.08%
 
 ## Run 20: Higher Learning Rate of 0.04 with Optimal Batch Size (Google Colab, T4 GPU)
 - **Hypothesis**: A higher learning rate of 0.04 with the optimal batch size of 64 and cosine annealing will improve the 10-epoch accuracy record.
-- **Description**: Testing a higher learning rate with the best-performing configuration (ResNet-9, batch size 64, cosine LR).
+- **Description**: Testing a higher learning rate with the best-performing configuration (ResNet-18, batch size 64, cosine LR).
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.04, momentum=0.9)
   - BATCH_SIZE=64
@@ -1102,7 +1102,7 @@ Final Validation Accuracy: 88.27%
 - **Description**: Same as Run 20, but with AMP enabled to leverage the T4 GPU's tensor cores.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**:
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.04, momentum=0.9)
   - BATCH_SIZE=64
@@ -1186,7 +1186,7 @@ Final Validation Accuracy: 87.58%
 - **Description**: Same configuration as Run 22 but with `LEARNING_RATE` set to 0.06 instead of 0.08.
 - **Hardware**: Google Colab (Python 3 Google Compute Engine backend), T4 GPU.
 - **Configuration**: 
-  - Model: ResNet-9 (11,173,962 parameters)
+  - Model: ResNet-18 (11,173,962 parameters)
   - BatchNorm: True
   - Optimizer: SGD(lr=0.06, momentum=0.9)
   - BATCH_SIZE=64

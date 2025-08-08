@@ -64,7 +64,7 @@ def main():
 
     print(f"Data loaders created in {time.time() - start_load_time:.2f} seconds.")
     
-    # --- 4. ResNet-9 Model Definition ---
+    # --- 4. ResNet-18 Model Definition ---
     class BasicBlock(nn.Module):
         def __init__(self, in_channels, out_channels, stride=1, downsample=None):
             super(BasicBlock, self).__init__()
@@ -94,9 +94,9 @@ def main():
 
             return out
 
-    class ResNet9(nn.Module):
+    class ResNet18(nn.Module):
         def __init__(self, num_classes=10):
-            super(ResNet9, self).__init__()
+            super(ResNet18, self).__init__()
             self.in_channels = 64
             
             # Initial conv layer
@@ -154,7 +154,7 @@ def main():
 
             return x
 
-    model = ResNet9().to(device, memory_format=torch.channels_last)
+    model = ResNet18().to(device, memory_format=torch.channels_last)
     # model = torch.compile(model)  # This 100 second penalty was not worthwhile at all in our 10 epoch test
     
     # Count parameters
