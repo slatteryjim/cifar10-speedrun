@@ -18,7 +18,6 @@ def main():
     LEARNING_RATE = 0.04  # Higher LR for 10 epochs + cosine
     BATCH_SIZE = 64
     EPOCHS = 10
-    USE_BN = True  # ResNet typically benefits from BN
     USE_COSINE = True
     
     print("Pre-loading data...")
