@@ -5,14 +5,31 @@ import torchvision
 import torchvision.transforms as transforms
 import time
 import os
+import argparse
+import random
+import numpy as np
 
 def main():
+    # --- 0. Args ---
+    parser = argparse.ArgumentParser(description="CIFAR-10 Speedrun")
+    parser.add_argument("--seed", type=int, default=None, help="Optional random seed for reproducibility (default: None)")
+    args = parser.parse_args()
+
     # --- 1. Device Configuration ---
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     USE_AMP = torch.cuda.is_available()
     print(f"Using device: {device}")
     if USE_AMP:
         print("Using Automatic Mixed Precision (AMP).")
+
+    # Optional seeding for reproducibility
+    if args.seed is not None:
+        print(f"Setting random seed: {args.seed}")
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(args.seed)
 
     # --- 2. Hyperparameters ---
     LEARNING_RATE = 0.04  # Higher LR for 10 epochs + cosine

@@ -4,13 +4,18 @@ This repository is dedicated to learning and building intuition for neural netwo
 
 ## TL;DR (Quick Start)
 - **Single script**: `main.py`
-- **Current default**: ResNet-18-style, SGD(lr=0.04, momentum=0.9), batch size 64, 10 epochs, cosine LR schedule, AMP auto-enabled on CUDA, light augmentation (RandomCrop + Flip)
+- **Current default**: ResNet-18, SGD(lr=0.04, momentum=0.9), batch size 64, 10 epochs, cosine LR schedule, AMP auto-enabled on CUDA, light augmentation (RandomCrop + Flip)
 - **Best 10-epoch result**: ~88% on T4 (with AMP), ~88% on A100 in ~104s (see `experiments.md`)
 - **All experiment logs**: `experiments.md`
 
 Run locally:
 ```
 python main.py
+```
+
+Optionally make runs reproducible with a fixed seed:
+```
+python main.py --seed 1337
 ```
 
 ## The Philosophy: Learn by Iterating, Fast
@@ -58,6 +63,11 @@ A detailed log of all experiments is available in `experiments.md`. Here is a hi
     *   **Augmentations:** Adding `ColorJitter` provided a slight accuracy boost, while `TrivialAugmentWide` and `RandomRotation` were less effective than the baseline augmentations for this setup.
 
 The final recommended configuration for a fast, high-accuracy 10-epoch run is ResNet-18, batch size 64, LR=0.04, cosine schedule, and AMP enabled.
+
+## Reproducibility
+- By default, runs are unseeded to surface natural run-to-run variation during exploration.
+- Provide `--seed <int>` to fix all RNGs (Python, NumPy, PyTorch, CUDA) for repeatability.
+- Note: some CUDA kernels and AMP paths can still introduce minor non-determinism.
 
 ## Suggested next experiments
 - Add simple augmentation (RandomCrop(32, padding=4), RandomHorizontalFlip) to push >75% without changing model depth.
