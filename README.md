@@ -3,13 +3,10 @@
 This repository is dedicated to learning and building intuition for neural networks by "speedrunning" the CIFAR-10 dataset.
 
 ## TL;DR (Quick Start)
-- Single script: main.py
-- Default strong CPU baseline: SimpleCNN, SGD(lr=0.02, momentum=0.9), 10 epochs, no BN/augmentation
-- Reproducible toggles in code:
-  - USE_BN = False  # add BatchNorm if True
-  - USE_COSINE = False  # cosine LR schedule over EPOCHS if True
-- Latest best CPU result (no aug): 71.87% in ~197s (see experiments.md Run 8f)
-- All experiment logs with per-epoch metrics: experiments.md
+- **Single script**: `main.py`
+- **Current default**: ResNet-18-style, SGD(lr=0.04, momentum=0.9), batch size 64, 10 epochs, cosine LR schedule, AMP auto-enabled on CUDA, light augmentation (RandomCrop + Flip)
+- **Best 10-epoch result**: ~88% on T4 (with AMP), ~88% on A100 in ~104s (see `experiments.md`)
+- **All experiment logs**: `experiments.md`
 
 Run locally:
 ```
@@ -33,20 +30,17 @@ CIFAR-10 is a classic computer vision dataset consisting of 60,000 32x32 color i
 `airplane`, `automobile`, `bird`, `cat`, `deer`, `dog`, `frog`, `horse`, `ship`, `truck`
 
 ## Current Onboarding: What this repo gives you
-1) A runnable baseline that trains end-to-end in a few minutes on CPU.
-2) A minimal model with switches to compare common techniques (BatchNorm, cosine schedule).
-3) A living lab notebook: experiments.md with hypotheses, configs, timings, and per-epoch accuracy.
+1) A runnable baseline that trains end-to-end in minutes on GPU (and is still usable on CPU).
+2) A compact ResNet-18-style implementation with toggles for cosine LR and AMP.
+3) A living lab notebook: `experiments.md` with hypotheses, configs, timings, and per-epoch accuracy.
 
 ## How to reproduce the main baselines
-- Baseline (fast, CPU-friendly):
-  - In main.py: USE_BN=False, USE_COSINE=False, LEARNING_RATE=0.02, momentum=0.9
+- Default strong GPU baseline:
   - Command: `python main.py`
-  - Expected: ~71–72% in ~19–20s/epoch on CPU
-- BatchNorm variant (slower on CPU, faster on GPU):
-  - USE_BN=True, momentum=0.9, lr=0.01 (or retune)
-  - On CPU, BN increases epoch time. On GPU, BN is much faster and can help accuracy.
-- Cosine schedule:
-  - USE_COSINE=True with fixed EPOCHS; consider warmup or longer training for benefit. Recent run with lr=0.02, momentum=0.9, cosine over 10 epochs achieved 71.78% on CPU.
+  - Expected on T4: ~88% in ~5 min with AMP, batch size 64, LR=0.04, cosine
+- CPU-only baseline (slower):
+  - Same command. Expect 80–85% with ResNet-9, but much longer per-epoch time.
+  
 
 ## Experiment Summary
 
@@ -54,7 +48,7 @@ A detailed log of all experiments is available in `experiments.md`. Here is a hi
 
 *   **Initial Baseline (Runs 1-6):** Established a simple CNN baseline, first on CPU (~69%) and then GPU (~71%). Early experiments showed massive speedups from optimizing the data loading pipeline (pre-loading and normalization), reducing training loop time from ~287s to ~14s on GPU.
 *   **SimpleCNN Tuning (Runs 7-8):** Found that for a small CNN, well-tuned SGD with momentum (lr=0.02, momentum=0.9) outperformed Adam and was the best configuration on CPU, achieving **71.87%** accuracy. BatchNorm slowed down CPU execution without providing a clear accuracy benefit.
-*   **Architecture Change to ResNet-9 (Run 9):** Switching to a ResNet-9 model on a GPU immediately boosted accuracy to **75.54%**, demonstrating the power of a better architecture.
+*   **Architecture Change to ResNet-18-style (Run 9):** Switching to a ResNet-18-style model on a GPU immediately boosted accuracy to **75.54%**, demonstrating the power of a better architecture.
 *   **The Power of Small Batches (Runs 10-17):** A systematic sweep of batch sizes from 512 down to 16 revealed a surprising trend: smaller batch sizes consistently improved accuracy. Batch size 32 achieved **87.18%**, while batch size 64 hit **85.69%** in just 10 epochs.
 *   **Reaching 90% Accuracy (Run 18):** By extending training to 20 epochs with a cosine learning rate schedule and the optimal batch size of 64, the model reached **90.68%** accuracy.
 *   **Advanced Optimizations (Runs 19-26):**
