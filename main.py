@@ -41,13 +41,16 @@ def main():
     test_dataset  = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=test_transform)
 
     # Create data loaders for batch training
+    use_pin_memory = (device.type == "cuda")
+    use_persistent_workers = (device.type == "cuda")
+
     train_loader = torch.utils.data.DataLoader(
         train_dataset, 
         batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=os.cpu_count(),
-        pin_memory=True,  # This helps speed up data transfer to GPU
-        persistent_workers=True,
+        pin_memory=use_pin_memory,  # Helps speed up data transfer to GPU
+        persistent_workers=use_persistent_workers,
         prefetch_factor=2
     )
     test_loader = torch.utils.data.DataLoader(
@@ -55,8 +58,8 @@ def main():
         batch_size=BATCH_SIZE,  # Use same batch size for consistency
         shuffle=False,
         num_workers=os.cpu_count(),
-        pin_memory=True,
-        persistent_workers=True,
+        pin_memory=use_pin_memory,
+        persistent_workers=use_persistent_workers,
         prefetch_factor=2
     )
 
